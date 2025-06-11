@@ -38,13 +38,49 @@
     #timer {
       color: #0f0;
     }
+    #xpBarContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: rgba(255,255,255,0.2);
+    }
+    #xpBar {
+      height: 100%;
+      width: 0%;
+      background: #0f0;
+    }
+    #abilityBar {
+      position: absolute;
+      top: 15px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .ability {
+      background: rgba(0,0,0,0.6);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .ability .key {
+      font-weight: bold;
+      margin-right: 4px;
+    }
   </style>
 </head>
 <body>
+  <div id="xpBarContainer"><div id="xpBar"></div></div>
+  <div id="abilityBar">
+    <div class="ability"><span class="key">Q</span><span id="qUpgrades">-</span></div>
+    <div class="ability"><span class="key">W</span><span id="wUpgrades">-</span></div>
+    <div class="ability"><span class="key">E</span><span id="eUpgrades">-</span></div>
+  </div>
   <div id="hud">
     <p><strong>Level:</strong> <span id="level">1</span></p>
-    <p><strong>XP:</strong> <span id="xp">0</span></p>
-    <p><strong>Upgrades:</strong> <span id="upgrades">None</span></p>
     <p><strong>Time:</strong> <span id="timer">0:00</span></p>
     <p><strong>Combo:</strong> <span id="comboName">None</span></p>
     <button id="levelUpBtn">Level Up</button>
@@ -274,15 +310,13 @@
 
     function updateHUD() {
       document.getElementById("level").textContent = state.level;
-      document.getElementById("xp").textContent = state.xp + "/" + state.xpToNext;
-      document.getElementById("upgrades").textContent =
-        `Q(${state.upgrades.Q.join(",")}) ` +
-        `W(${state.upgrades.W.join(",")}) ` +
-        `E(${state.upgrades.E.join(",")}) ` +
-        `Stats(${state.generalUpgrades.join(",")})`;
+      const pct = Math.min(1, state.xp / state.xpToNext) * 100;
+      document.getElementById("xpBar").style.width = pct + "%";
+      document.getElementById("qUpgrades").textContent = state.upgrades.Q.join(",") || "-";
+      document.getElementById("wUpgrades").textContent = state.upgrades.W.join(",") || "-";
+      document.getElementById("eUpgrades").textContent = state.upgrades.E.join(",") || "-";
       document.getElementById("timer").textContent = formatTime(state.timeFrames);
-      document.getElementById("comboName").textContent =
-        state.comboTimer > 0 ? state.comboName : 'None';
+      document.getElementById("comboName").textContent = state.comboTimer > 0 ? state.comboName : "None";
     }
 
     function drawGame() {
