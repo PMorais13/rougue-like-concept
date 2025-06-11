@@ -254,7 +254,9 @@ function getComboName(elems) {
 function levelUp() {
   state.xp -= state.xpToNext;
   state.level++;
-  state.xpToNext = Math.floor(state.xpToNext * 1.3);
+  state.xpToNext = Math.floor(
+    state.xpToNext * GAME_CONSTANTS.XP_LEVEL_COEFF
+  );
 
   const opts = [];
   while (opts.length < 3) {
@@ -478,7 +480,9 @@ function updateGame() {
     state.spawnTimer = state.spawnInterval;
   }
   if (--state.spawnIncreaseTimer <= 0) {
-    state.spawnInterval = Math.floor(state.spawnInterval * 1.2);
+    state.spawnInterval = Math.floor(
+      state.spawnInterval * GAME_CONSTANTS.SPAWN_INCREASE_COEFF
+    );
     state.spawnIncreaseTimer = GAME_CONSTANTS.SPAWN_INCREASE_TIMER;
   }
   if (state.paused) return;
@@ -538,8 +542,11 @@ function updateGame() {
       }
     }
     e.x -= spd;
-    if (e.hp > 0 && e.x > -e.size) remainingEnemies.push(e);
-    else if (e.hp <= 0) state.xp++;
+    if (e.hp > 0 && e.x > -e.size) {
+      remainingEnemies.push(e);
+    } else if (e.hp <= 0) {
+      state.xp += GAME_CONSTANTS.XP_PER_ENEMY;
+    }
   });
   state.enemies = remainingEnemies;
 
@@ -594,7 +601,7 @@ function updateGame() {
         }
         if (e.hp <= 0) {
           state.enemies.splice(i, 1);
-          state.xp++;
+          state.xp += GAME_CONSTANTS.XP_PER_ENEMY;
         }
         return false;
       }
