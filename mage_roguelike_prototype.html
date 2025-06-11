@@ -15,6 +15,8 @@
     }
     canvas {
       display: block;
+      width: 100vw;
+      height: 100vh;
     }
     #hud {
       position: absolute;
@@ -95,6 +97,15 @@
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      player.y = canvas.height - 65;
+    });
     const mageImg = new Image();
     mageImg.src = "mage.png";
     const goblinImg = new Image();
@@ -136,8 +147,8 @@
 
     const player = {
       x: 100,
-      y: canvas.height - 45,
-      radius: 15,
+      y: canvas.height - 65,
+      radius: 30,
       speed: 3
     };
 
@@ -148,9 +159,9 @@
       else if (r > 0.8) type = 'voador';
 
       const baseStats = {
-        miniom: { hp: 3, speed: 1.5, size: 30 },
-        tanker: { hp: 8, speed: 0.8, size: 45 },
-        voador: { hp: 2, speed: 2.2, size: 25 }
+        miniom: { hp: 3, speed: 1.5, size: 60 },
+        tanker: { hp: 8, speed: 0.8, size: 90 },
+        voador: { hp: 2, speed: 2.2, size: 50 }
       };
       const mult = Math.pow(1.5, Math.floor(state.level / 5));
       const stats = baseStats[type];
@@ -349,7 +360,7 @@
       ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
 
       if (mageImg.complete) {
-        ctx.drawImage(mageImg, player.x - 20, player.y - 20, 40, 40);
+        ctx.drawImage(mageImg, player.x - 40, player.y - 40, 80, 80);
       } else {
         ctx.fillStyle = "purple";
         ctx.beginPath();
