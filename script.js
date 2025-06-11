@@ -196,29 +196,14 @@ function getBulletColor(elements) {
 const elementOptions = ["Fire", "Ice", "Wind"];
 const generalUpgradesPool = [
   UPGRADE_FAST_SHOT,
-  { type: "stat", prop: "baseDamage", value: 1, desc: "+1 dano base" },
-  { type: "stat", prop: "qDamageBonus", value: 1, desc: "+1 dano do Q" },
-  { type: "stat", prop: "wBonusHp", value: 5, desc: "+5 vida do W" },
-  { type: "stat", prop: "eDamageBonus", value: 1, desc: "+1 dano do E" },
-  {
-    type: "stat",
-    prop: "qCooldown",
-    value: -30,
-    desc: "Q recarrega mais rápido",
-  },
-  {
-    type: "stat",
-    prop: "turretFireDelay",
-    value: -10,
-    desc: "Torreta atira mais rápido",
-  },
-  {
-    type: "stat",
-    prop: "barrierHeight",
-    value: 10,
-    desc: "Barreira mais alta",
-  },
-  { type: "stat", prop: "bulletAOE", value: 20, desc: "Ataque básico em área" },
+  UPGRADE_BASE_DAMAGE,
+  UPGRADE_Q_DAMAGE,
+  UPGRADE_W_HEALTH,
+  UPGRADE_E_DAMAGE,
+  UPGRADE_Q_COOLDOWN,
+  UPGRADE_TURRET_FASTER,
+  UPGRADE_BARRIER_HEIGHT,
+  UPGRADE_BULLET_AOE,
 ];
 
 const comboMap = {

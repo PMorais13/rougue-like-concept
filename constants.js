@@ -33,3 +33,59 @@ const UPGRADE_FAST_SHOT = {
   value: -10,
   desc: "Tiros mais rápidos",
 };
+
+const UPGRADE_BASE_DAMAGE = {
+  type: "stat",
+  prop: "baseDamage",
+  value: 1,
+  desc: "+1 dano base",
+};
+
+const UPGRADE_Q_DAMAGE = {
+  type: "stat",
+  prop: "qDamageBonus",
+  value: 1,
+  desc: "+1 dano do Q",
+};
+
+const UPGRADE_W_HEALTH = {
+  type: "stat",
+  prop: "wBonusHp",
+  value: 5,
+  desc: "+5 vida do W",
+};
+
+const UPGRADE_E_DAMAGE = {
+  type: "stat",
+  prop: "eDamageBonus",
+  value: 1,
+  desc: "+1 dano do E",
+};
+
+const UPGRADE_Q_COOLDOWN = {
+  type: "stat",
+  prop: "qCooldown",
+  value: -30,
+  desc: "Q recarrega mais rápido",
+};
+
+const UPGRADE_TURRET_FASTER = {
+  type: "stat",
+  prop: "turretFireDelay",
+  value: -10,
+  desc: "Torreta atira mais rápido",
+};
+
+const UPGRADE_BARRIER_HEIGHT = {
+  type: "stat",
+  prop: "barrierHeight",
+  value: 10,
+  desc: "Barreira mais alta",
+};
+
+const UPGRADE_BULLET_AOE = {
+  type: "stat",
+  prop: "bulletAOE",
+  value: 20,
+  desc: "Ataque básico em área",
+};
