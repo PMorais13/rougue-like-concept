@@ -60,3 +60,29 @@ Vento é aplicado. Como os inimigos se movem constantemente para a esquerda,
 esse recuo pode ser discreto. Para um efeito mais visível, seria preciso
 ajustar esse valor ou aplicar a força de forma repetida.
 
+## Combinações Elementais
+
+Nesta seção são listados nomes sugeridos para combinações de elementos. Eles podem servir como referência para efeitos visuais ou novas mecânicas no futuro.
+
+### Combinações duplas
+
+- **Fogo + Gelo → Vapor**
+- **Fogo + Vento → Fogo Selvagem**
+- **Gelo + Vento → Nevasca**
+- **Fogo + Fogo → Chama Azul**
+- **Gelo + Gelo → Geada Profunda**
+- **Vento + Vento → Tornado**
+
+### Combinações triplas
+
+- **Fogo + Fogo + Fogo → Chama Branca**
+- **Gelo + Gelo + Gelo → Era Glacial**
+- **Vento + Vento + Vento → Ciclone**
+- **Fogo + Fogo + Gelo → Vapor Escaldante**
+- **Fogo + Fogo + Vento → Tempestade de Fogo**
+- **Gelo + Gelo + Fogo → Gelo Candente**
+- **Gelo + Gelo + Vento → Nevasca Congelante**
+- **Vento + Vento + Fogo → Furacão Flamejante**
+- **Vento + Vento + Gelo → Tempestade Gélida**
+- **Fogo + Gelo + Vento → Tempestade Elemental**
+
