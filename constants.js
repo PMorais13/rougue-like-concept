@@ -1,5 +1,5 @@
 const GAME_CONSTANTS = {
-  SPAWN_INTERVAL: 110, // time between enemy spawns in frames
+  SPAWN_INTERVAL: 160, // time between enemy spawns in frames
   SPAWN_INCREASE_SECONDS: 20, // seconds until spawn interval increases
   SPAWN_INCREASE_TIMER: 20 * 60, // frames until spawn interval increases
   SPAWN_INCREASE_COEFF: 1.2, // multiplier applied to spawnInterval
@@ -7,8 +7,8 @@ const GAME_CONSTANTS = {
   PLAYER_MAX_HP: 10, // base player life (unused yet)
   BULLET_SPEED: 5, // speed of basic player bullets
   TURRET_BULLET_SPEED: 6, // speed of turret bullets
-  PLAYER_FIRE_COOLDOWN: 40, // frames between player shots
-  TURRET_FIRE_COOLDOWN: 60, // frames between turret shots
+  PLAYER_FIRE_COOLDOWN: 80, // frames between player shots
+  TURRET_FIRE_COOLDOWN: 100, // frames between turret shots
   MINIOM_JUMP_VELOCITY: -12, // initial jump velocity for miniom enemies
   MINIOM_JUMP_COOLDOWN_MIN: 60, // minimum frames before miniom jumps again
   MINIOM_JUMP_COOLDOWN_VAR: 120, // additional random cooldown range
