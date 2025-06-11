@@ -73,7 +73,7 @@ function spawnEnemy() {
   else if (r > 0.6 && state.timeFrames >= 3600) type = "tanker";
 
   const baseStats = GAME_CONSTANTS.ENEMY_BASE_STATS;
-  const mult = Math.pow(1.3, Math.floor(state.level / 5));
+  const mult = Math.pow(1.2, Math.floor(state.level / 5));
   const stats = baseStats[type];
   const groundY = canvas.height - stats.size - 30;
   const enemy = {
@@ -137,7 +137,11 @@ function castQ() {
   state.enemies.forEach((e) => {
     // calcula usando o centro do inimigo para acertar o Q em alvos grandes
     const centerY = e.y + e.size / 2;
-    if (centerY > player.y - range && centerY < player.y + range && e.x > player.x) {
+    if (
+      centerY > player.y - range &&
+      centerY < player.y + range &&
+      e.x > player.x
+    ) {
       // usamos uma cópia para evitar mudar o array de elementos da magia
       applyElementEffects(e, state.spellElements.Q.slice());
       e.hp -= state.baseDamage + state.qDamageBonus;
@@ -239,10 +243,7 @@ function getComboName(elems) {
 function levelUp() {
   state.xp -= state.xpToNext;
   state.level++;
-  state.xpToNext = Math.floor(
-    state.xpToNext * GAME_CONSTANTS.XP_LEVEL_COEFF
-  );
-
+  state.xpToNext = Math.floor(state.xpToNext * GAME_CONSTANTS.XP_LEVEL_COEFF);
 
   const opts = [];
   while (opts.length < 3) {

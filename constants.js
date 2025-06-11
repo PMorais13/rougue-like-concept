@@ -32,7 +32,7 @@ const GAME_CONSTANTS = {
 const UPGRADE_FAST_SHOT = {
   type: "stat",
   prop: "autoFireDelay",
-  value: -15,
+  value: -30,
   desc: "Tiros mais rápidos",
 };
 
@@ -74,21 +74,21 @@ const UPGRADE_Q_COOLDOWN = {
 const UPGRADE_TURRET_FASTER = {
   type: "stat",
   prop: "turretFireDelay",
-  value: -10,
+  value: -30,
   desc: "Torreta atira mais rápido",
 };
 
 const UPGRADE_BARRIER_HEIGHT = {
   type: "stat",
   prop: "barrierHeight",
-  value: 20,
+  value: 40,
   desc: "Barreira mais alta",
 };
 
 const UPGRADE_BULLET_AOE = {
   type: "stat",
   prop: "bulletAOE",
-  value: 40,
+  value: 70,
   desc: "Ataque básico em área",
 };
 
