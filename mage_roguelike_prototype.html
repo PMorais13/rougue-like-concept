@@ -58,6 +58,8 @@
       xp: 0,
       xpToNext: 10,
       upgrades: { Q: [], W: [], E: [] },
+      generalUpgrades: [],
+      spellElements: { Q: [], W: [], E: [] },
       enemies: [],
       bullets: [],
       turrets: [],
@@ -65,7 +67,10 @@
       cooldowns: { Q: 0, W: 0, E: 0 },
       keys: {},
       autoFireTimer: 0,
+      autoFireDelay: 20,
+      baseDamage: 1,
       pendingUpgrade: null,
+      nextUpgrade: null,
       paused: false,
       mouseX: 0,
       mouseY: 0
@@ -80,11 +85,14 @@
 
     function spawnEnemy() {
       const flying = Math.random() < 0.2;
+      const spd = 1 + Math.random();
       state.enemies.push({
         x: canvas.width + 20,
         y: flying ? canvas.height / 2 : canvas.height - 60,
-        speed: 1 + Math.random(),
+        speed: spd,
         hp: 3,
+        burn: 0,
+        slow: 0,
         flying
       });
     }
@@ -97,7 +105,8 @@
         y: player.y,
         dx: Math.cos(angle) * speed,
         dy: Math.sin(angle) * speed,
-        dmg: 1
+        dmg: state.baseDamage,
+        elements: []
       });
     }
 
@@ -106,12 +115,11 @@
       const range = 15 + state.upgrades.Q.length * 10;
       const baseCd = 120;
       state.cooldowns.Q = Math.max(30, baseCd - state.upgrades.Q.length * 10);
-      state.enemies = state.enemies.filter(e => {
+      state.enemies.forEach(e => {
         if (e.y > player.y - range && e.y < player.y + range && e.x > player.x) {
-          state.xp++;
-          return false;
+          applyElementEffects(e, state.spellElements.Q);
+          e.hp -= state.baseDamage;
         }
-        return true;
       });
     }
 
@@ -124,7 +132,8 @@
         y: player.y - 10,
         width: 20,
         height: 40,
-        hp: 5 + state.level * 2 + extraHp
+        hp: 5 + state.level * 2 + extraHp,
+        elements: state.spellElements.W.slice()
       };
       state.barriers.push(barrier);
     }
@@ -133,8 +142,14 @@
       if (state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
       state.cooldowns.E = 300;
       const dmg = 1 + state.upgrades.E.length;
-      state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0, dmg });
+      state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0, dmg, elements: state.spellElements.E.slice() });
     }
+
+    const elementOptions = ['Fire', 'Ice', 'Wind'];
+    const generalUpgradesPool = [
+      { type: 'stat', prop: 'autoFireDelay', value: -2, desc: 'Faster attacks' },
+      { type: 'stat', prop: 'baseDamage', value: 1, desc: '+1 Damage' }
+    ];
 
     function levelUp() {
       state.xp -= state.xpToNext;
@@ -142,21 +157,46 @@
       state.xpToNext = Math.floor(state.xpToNext * 1.5);
       state.pendingUpgrade = true;
       state.paused = true;
-      document.getElementById('upgradeElement').textContent = `lvl ${state.level}`;
+      let up;
+      if (state.level % 5 === 0) {
+        const el = elementOptions[Math.floor(Math.random() * elementOptions.length)];
+        up = { type: 'element', element: el, desc: el };
+      } else {
+        up = generalUpgradesPool[Math.floor(Math.random() * generalUpgradesPool.length)];
+      }
+      state.nextUpgrade = up;
+      document.getElementById('upgradeElement').textContent = up.desc;
       document.getElementById('upgradePrompt').style.display = 'block';
     }
 
     function applyUpgrade(key) {
-      state.upgrades[key].push('+' + state.level);
+      const up = state.nextUpgrade;
+      if (!up) return;
+      if (up.type === 'element') {
+        state.spellElements[key].push(up.element);
+        state.upgrades[key].push(up.element);
+      } else if (up.type === 'stat') {
+        if (up.prop === 'autoFireDelay') {
+          state.autoFireDelay = Math.max(5, state.autoFireDelay + up.value);
+        } else if (up.prop === 'baseDamage') {
+          state.baseDamage += up.value;
+        }
+        state.generalUpgrades.push(up.desc);
+      }
       state.pendingUpgrade = false;
       state.paused = false;
+      state.nextUpgrade = null;
       document.getElementById('upgradePrompt').style.display = 'none';
     }
 
     function updateHUD() {
       document.getElementById("level").textContent = state.level;
       document.getElementById("xp").textContent = state.xp + "/" + state.xpToNext;
-      document.getElementById("upgrades").textContent = `Q(${state.upgrades.Q.join(",")}) W(${state.upgrades.W.join(",")}) E(${state.upgrades.E.join(",")})`;
+      document.getElementById("upgrades").textContent =
+        `Q(${state.upgrades.Q.join(",")}) ` +
+        `W(${state.upgrades.W.join(",")}) ` +
+        `E(${state.upgrades.E.join(",")}) ` +
+        `Stats(${state.generalUpgrades.join(",")})`;
     }
 
     function drawGame() {
@@ -193,11 +233,27 @@
       });
     }
 
+    function applyElementEffects(enemy, elements) {
+      if (!elements) return;
+      if (elements.includes('Fire')) enemy.burn = 60;
+      if (elements.includes('Ice')) enemy.slow = 60;
+      if (elements.includes('Wind')) enemy.x += 20;
+    }
+
     function updateGame() {
-      if (++state.autoFireTimer % 20 === 0) shootBasic();
+      if (++state.autoFireTimer % state.autoFireDelay === 0) shootBasic();
       if (state.paused) return;
 
-      state.enemies.forEach(e => e.x -= e.speed);
+      const remainingEnemies = [];
+      state.enemies.forEach(e => {
+        if (e.burn > 0 && --e.burn % 20 === 0) e.hp--;
+        if (e.slow > 0) e.slow--;
+        const spd = e.slow > 0 ? e.speed * 0.5 : e.speed;
+        e.x -= spd;
+        if (e.hp > 0 && e.x > -40) remainingEnemies.push(e);
+        else if (e.hp <= 0) state.xp++;
+      });
+      state.enemies = remainingEnemies;
 
       // turret logic
       state.turrets.forEach(t => {
@@ -209,7 +265,7 @@
         if (target) {
           const ang = Math.atan2(target.y - t.y, target.x - t.x);
           const spd = 6;
-          state.bullets.push({ x: t.x, y: t.y, dx: Math.cos(ang) * spd, dy: Math.sin(ang) * spd, dmg: t.dmg });
+          state.bullets.push({ x: t.x, y: t.y, dx: Math.cos(ang) * spd, dy: Math.sin(ang) * spd, dmg: t.dmg, elements: t.elements });
         }
         t.cooldown = 60;
       });
@@ -221,6 +277,7 @@
         for (let i = 0; i < state.enemies.length; i++) {
           const e = state.enemies[i];
           if (Math.abs(b.x - e.x) < 20 && Math.abs(b.y - e.y) < 20) {
+            applyElementEffects(e, b.elements);
             e.hp -= b.dmg;
             if (e.hp <= 0) {
               state.enemies.splice(i, 1);
@@ -236,6 +293,7 @@
       state.barriers = state.barriers.filter(barr => {
         state.enemies.forEach(e => {
           if (e.x < barr.x + barr.width && e.x + 30 > barr.x && e.y < barr.y + barr.height && e.y + 30 > barr.y) {
+            applyElementEffects(e, barr.elements);
             e.x = barr.x + barr.width;
             barr.hp--;
           }
