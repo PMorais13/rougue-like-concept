@@ -115,6 +115,8 @@
     orcImg.src = "orc.png";
     const batImg = new Image();
     batImg.src = "bat.png";
+    const magiaImg = new Image();
+    magiaImg.src = "magia.png";
 
     const state = {
       level: 1,
@@ -130,15 +132,15 @@
       cooldowns: { Q: 0, W: 0, E: 0 },
       keys: {},
       autoFireTimer: 0,
-      autoFireDelay: 20,
+      autoFireDelay: 40,
       baseDamage: 1,
       pendingUpgrade: null,
       nextUpgrade: null,
       paused: false,
       mouseX: 0,
       mouseY: 0,
-      spawnInterval: 60,
-      spawnTimer: 60,
+      spawnInterval: 120,
+      spawnTimer: 120,
       spawnIncreaseTimer: 1800,
       timeFrames: 0,
       beams: [],
@@ -156,8 +158,8 @@
     function spawnEnemy() {
       const r = Math.random();
       let type = 'miniom';
-      if (r > 0.6 && r <= 0.8) type = 'tanker';
-      else if (r > 0.8) type = 'voador';
+      if (r > 0.8 && state.level >= 10) type = 'voador';
+      else if (r > 0.6 && state.level >= 5) type = 'tanker';
 
       const baseStats = {
         miniom: { hp: 3, speed: 1.5, size: 60 },
@@ -391,10 +393,14 @@
       });
 
       state.bullets.forEach(b => {
-        ctx.fillStyle = b.color || "white";
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-        ctx.fill();
+        if (magiaImg.complete) {
+          ctx.drawImage(magiaImg, b.x - 10, b.y - 10, 20, 20);
+        } else {
+          ctx.fillStyle = b.color || "white";
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
       });
 
       ctx.fillStyle = "blue";
