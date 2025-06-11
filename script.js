@@ -84,9 +84,10 @@ function spawnEnemy() {
         : groundY,
     speed: stats.speed,
     hp: Math.floor(stats.hp * mult),
+    maxHp: Math.floor(stats.hp * mult),
     size: stats.size,
     burn: 0,
-    burnDamage: 0,
+    burnPct: 0,
     slow: 0,
     slowFactor: 1,
     knockback: 0,
@@ -444,8 +445,16 @@ function applyElementEffects(enemy, elements) {
   const windCount = elements.filter((e) => e === "Wind").length;
 
   if (fireCount > 0) {
-    enemy.burn = fireCount >= 3 ? 300 : 180; // quadros
-    enemy.burnDamage = fireCount === 1 ? 0.5 : fireCount === 2 ? 1 : 2;
+    if (fireCount === 1) {
+      enemy.burn = 120; // 2 segundos
+      enemy.burnPct = 0.1;
+    } else if (fireCount === 2) {
+      enemy.burn = 240; // 4 segundos
+      enemy.burnPct = 0.1;
+    } else {
+      enemy.burn = 360; // 6 segundos
+      enemy.burnPct = 0.15;
+    }
   }
 
   if (iceCount > 0) {
@@ -480,7 +489,7 @@ function updateGame() {
   state.enemies.forEach((e) => {
     if (e.burn > 0) {
       e.burn--;
-      e.hp -= e.burnDamage / 60;
+      e.hp -= (e.burnPct * e.maxHp) / 60;
     }
     if (e.slow > 0) {
       e.slow--;
