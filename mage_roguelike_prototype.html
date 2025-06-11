@@ -168,7 +168,7 @@
       if (state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
       state.cooldowns.E = 300;
       const dmg = 1 + state.upgrades.E.length;
-      state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0, dmg, elements: state.spellElements.E.slice() });
+      state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0, dmg });
     }
 
     function getBulletColor(elements) {
@@ -346,9 +346,9 @@
             dx: Math.cos(ang) * spd,
             dy: Math.sin(ang) * spd,
             dmg: t.dmg,
-            // copy turret elements so bullets keep the original effects
-            elements: t.elements.slice(),
-            color: getBulletColor(t.elements)
+            // use current elements so upgrades affect existing turrets
+            elements: state.spellElements.E.slice(),
+            color: getBulletColor(state.spellElements.E)
           });
         }
         t.cooldown = 60;
