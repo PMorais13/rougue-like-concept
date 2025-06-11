@@ -30,6 +30,6 @@ const GAME_CONSTANTS = {
 const UPGRADE_FAST_SHOT = {
   type: "stat",
   prop: "autoFireDelay",
-  value: -5,
+  value: -10,
   desc: "Tiros mais rápidos",
 };
