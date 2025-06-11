@@ -94,10 +94,21 @@
         type,
         flying: type === 'voador'
       };
+      if (type === 'voador') {
+        enemy.baseY = enemy.y;
+        enemy.zigzag = Math.random() < 0.5;
+        enemy.angle = Math.random() * Math.PI * 2;
+        enemy.amplitude = 30;
+      }
       if (type === 'miniom') {
         enemy.baseY = groundY;
         enemy.vy = 0;
         enemy.jumpCooldown = Math.floor(Math.random() * 180) + 120; // 2-5 seconds
+      }
+      if (type === 'tanker') {
+        enemy.dashCooldown = Math.floor(Math.random() * 240) + 120;
+        enemy.dashDuration = 30;
+        enemy.dashTime = 0;
       }
       state.enemies.push(enemy);
     }
@@ -460,8 +471,23 @@
             e.vy = 0;
           }
         }
+        if (e.type === 'voador' && e.zigzag) {
+          e.angle += 0.1;
+          e.y = e.baseY + Math.sin(e.angle) * e.amplitude;
+        }
 
-        const spd = e.slow > 0 ? e.speed * e.slowFactor : e.speed;
+        let spd = e.slow > 0 ? e.speed * e.slowFactor : e.speed;
+        if (e.type === 'tanker') {
+          if (e.dashTime > 0) {
+            e.dashTime--;
+            spd *= 3;
+          } else {
+            if (e.dashCooldown-- <= 0) {
+              e.dashTime = e.dashDuration;
+              e.dashCooldown = Math.floor(Math.random() * 240) + 120;
+            }
+          }
+        }
         e.x -= spd;
         if (e.hp > 0 && e.x > -e.size) remainingEnemies.push(e);
         else if (e.hp <= 0) state.xp++;
