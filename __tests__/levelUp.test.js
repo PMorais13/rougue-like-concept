@@ -21,10 +21,10 @@ beforeEach(() => {
   canvas.getContext = () => ({ clearRect() {}, fillRect() {}, beginPath() {}, arc() {}, fill() {}, drawImage() {}, stroke() {}, lineTo() {}, moveTo() {} });
 });
 
-test('level up clears all enemies', () => {
+test('level up keeps enemies on screen', () => {
   const { state, levelUp } = require('../script.js');
   state.enemies = [ { hp: 5 }, { hp: 3 } ];
   state.xp = state.xpToNext;
   levelUp();
-  expect(state.enemies.length).toBe(0);
+  expect(state.enemies.length).toBe(2);
 });
