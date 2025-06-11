@@ -7,6 +7,8 @@ const GAME_CONSTANTS = {
   PLAYER_MAX_HP: 10, // base player life (unused yet)
   BULLET_SPEED: 5, // speed of basic player bullets
   TURRET_BULLET_SPEED: 6, // speed of turret bullets
+  PLAYER_FIRE_COOLDOWN: 40, // frames between player shots
+  TURRET_FIRE_COOLDOWN: 60, // frames between turret shots
   MINIOM_JUMP_VELOCITY: -12, // initial jump velocity for miniom enemies
   MINIOM_JUMP_COOLDOWN_MIN: 60, // minimum frames before miniom jumps again
   MINIOM_JUMP_COOLDOWN_VAR: 120, // additional random cooldown range
