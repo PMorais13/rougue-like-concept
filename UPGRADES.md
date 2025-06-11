@@ -8,16 +8,23 @@ experiência e sobe de nível, você pode melhorar atributos gerais ou adicionar
 
 - **Ganho de XP**: ao derrotar inimigos, o jogador ganha XP. Quando atinge a
   quantidade necessária (`xpToNext`), sobe de nível.
-- **Níveis comuns**: em níveis que não são múltiplos de 5, é sorteado um
-  *upgrade* geral (estatística).
-- **A cada 5 níveis**: aparece a tela para escolher um elemento (Fogo, Gelo ou
-  Vento) e aplicar em um dos feitiços.
+- **Escolha de upgrades**: a cada novo nível surgem três cartas com melhorias.
+  O jogador escolhe uma delas antes de continuar.
+- **A cada 5 níveis**: após escolher a carta, também é possível aplicar um
+  elemento (Fogo, Gelo ou Vento) em um dos feitiços.
 
 ## Upgrades gerais
 
-- **Faster attacks**: reduz o intervalo do disparo automático
-  (`autoFireDelay`). O valor nunca fica abaixo de 5 quadros.
-- **+1 Damage**: aumenta o dano básico de todas as magias (`baseDamage`).
+- **Tiros mais rápidos**: diminui o intervalo do disparo automático
+  (`autoFireDelay`).
+- **+1 dano base**: aumenta o dano básico de todas as magias (`baseDamage`).
+- **+1 dano do Q**: bônus aplicado ao raio.
+- **+5 vida do W**: fortalece a barreira.
+- **+1 dano do E**: projéteis da torreta ficam mais fortes.
+- **Q recarrega mais rápido**: reduz o tempo de espera do Q.
+- **Torreta atira mais rápido**: diminui o intervalo entre disparos da torreta.
+- **Barreira mais alta**: aumenta a altura da proteção do W.
+- **Ataque básico em área**: projéteis causam dano radial ao acertar.
 
 ## Elementos
 
