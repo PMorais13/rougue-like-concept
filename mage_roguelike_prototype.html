@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mage Roguelike Prototype</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #1e1e1e;
+      overflow: hidden;
+      color: white;
+      font-family: sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+    #hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      border-radius: 4px;
+    }
+    #upgradePrompt {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #222;
+      padding: 20px;
+      border: 2px solid #555;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <p><strong>Level:</strong> <span id="level">1</span></p>
+    <p><strong>XP:</strong> <span id="xp">0</span></p>
+    <p><strong>Upgrades:</strong> <span id="upgrades">None</span></p>
+  </div>
+  <div id="upgradePrompt">
+    <p>Escolha onde aplicar o poder: <span id="upgradeElement"></span></p>
+    <button onclick="applyUpgrade('Q')">Q</button>
+    <button onclick="applyUpgrade('W')">W</button>
+    <button onclick="applyUpgrade('E')">E</button>
+  </div>
+  <canvas id="gameCanvas" width="960" height="540"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const state = {
+      level: 1,
+      xp: 0,
+      xpToNext: 10,
+      upgrades: { Q: [], W: [], E: [] },
+      enemies: [],
+      bullets: [],
+      turrets: [],
+      barriers: [],
+      cooldowns: { Q: 0, W: 0, E: 0 },
+      keys: {},
+      autoFireTimer: 0,
+      pendingUpgrade: null,
+      paused: false,
+      mouseX: 0,
+      mouseY: 0
+    };
+
+    const player = {
+      x: 100,
+      y: canvas.height - 45,
+      radius: 15,
+      speed: 3
+    };
+
+    function spawnEnemy() {
+      const flying = Math.random() < 0.2;
+      state.enemies.push({
+        x: canvas.width + 20,
+        y: flying ? canvas.height / 2 : canvas.height - 60,
+        speed: 1 + Math.random(),
+        hp: 3,
+        flying
+      });
+    }
+
+    function shootBasic() {
+      const angle = Math.atan2(state.mouseY - player.y, state.mouseX - player.x);
+      const speed = 7;
+      state.bullets.push({
+        x: player.x,
+        y: player.y,
+        dx: Math.cos(angle) * speed,
+        dy: Math.sin(angle) * speed,
+        dmg: 1
+      });
+    }
+
+    function castQ() {
+      if (state.cooldowns.Q > 0 || state.paused) return;
+      state.cooldowns.Q = 120;
+      state.enemies = state.enemies.filter(e => {
+        if (e.y > player.y - 15 && e.y < player.y + 15 && e.x > player.x) {
+          state.xp++;
+          return false;
+        }
+        return true;
+      });
+    }
+
+    function castW() {
+      if (state.cooldowns.W > 0 || state.paused) return;
+      state.cooldowns.W = 300;
+      const barrier = {
+        x: player.x + 60,
+        y: player.y - 10,
+        width: 20,
+        height: 40,
+        hp: 5 + state.level * 2
+      };
+      state.barriers.push(barrier);
+    }
+
+    function castE() {
+      if (state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
+      state.cooldowns.E = 300;
+      state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0 });
+    }
+
+    function updateHUD() {
+      document.getElementById("level").textContent = state.level;
+      document.getElementById("xp").textContent = state.xp + "/" + state.xpToNext;
+      document.getElementById("upgrades").textContent = `Q(${state.upgrades.Q.join(",")}) W(${state.upgrades.W.join(",")}) E(${state.upgrades.E.join(",")})`;
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#444";
+      ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+
+      ctx.fillStyle = "purple";
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "green";
+      state.enemies.forEach(e => ctx.fillRect(e.x, e.y, 30, 30));
+
+      ctx.fillStyle = "white";
+      state.bullets.forEach(b => {
+        b.x += b.dx;
+        b.y += b.dy;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = "blue";
+      state.barriers.forEach(b => {
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+      });
+    }
+
+    function updateGame() {
+      if (++state.autoFireTimer % 20 === 0) shootBasic();
+      if (state.paused) return;
+
+      state.enemies.forEach(e => e.x -= e.speed);
+
+      state.bullets = state.bullets.filter(b => {
+        for (let i = 0; i < state.enemies.length; i++) {
+          const e = state.enemies[i];
+          if (Math.abs(b.x - e.x) < 20 && Math.abs(b.y - e.y) < 20) {
+            e.hp -= b.dmg;
+            if (e.hp <= 0) {
+              state.enemies.splice(i, 1);
+              state.xp++;
+            }
+            return false;
+          }
+        }
+        return b.x < canvas.width && b.y > 0 && b.y < canvas.height;
+      });
+
+      Object.keys(state.cooldowns).forEach(k => state.cooldowns[k] = Math.max(0, state.cooldowns[k] - 1));
+    }
+
+    function gameLoop() {
+      updateGame();
+      drawGame();
+      updateHUD();
+      requestAnimationFrame(gameLoop);
+    }
+
+    setInterval(spawnEnemy, 1000);
+
+    gameLoop();
+
+    canvas.addEventListener("mousemove", e => {
+      const rect = canvas.getBoundingClientRect();
+      state.mouseX = e.clientX - rect.left;
+      state.mouseY = e.clientY - rect.top;
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key.toLowerCase() === 'q') castQ();
+      if (e.key.toLowerCase() === 'w') castW();
+      if (e.key.toLowerCase() === 'e') castE();
+    });
+  </script>
+</body>
+</html>
