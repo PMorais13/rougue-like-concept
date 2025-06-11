@@ -1,0 +1,570 @@
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      player.y = canvas.height - 65;
+    });
+    const mageImg = new Image();
+    mageImg.src = "mage.png";
+    const goblinImg = new Image();
+    goblinImg.src = "goblin.png";
+    const orcImg = new Image();
+    orcImg.src = "orc.png";
+    const batImg = new Image();
+    batImg.src = "bat.png";
+    const magiaImg = new Image();
+    magiaImg.src = "magia.png";
+
+    const state = {
+      level: 1,
+      xp: 0,
+      xpToNext: 10,
+      upgrades: { Q: [], W: [], E: [] },
+      generalUpgrades: [],
+      spellElements: { Q: [], W: [], E: [] },
+      enemies: [],
+      bullets: [],
+      turrets: [],
+      barriers: [],
+      cooldowns: { Q: 0, W: 0, E: 0 },
+      keys: {},
+      autoFireTimer: 0,
+      autoFireDelay: 40,
+      baseDamage: 1,
+      qDamageBonus: 0,
+      wBonusHp: 0,
+      eDamageBonus: 0,
+      qCooldown: 300,
+      turretFireDelay: 60,
+      barrierHeight: 40,
+      bulletAOE: 0,
+      pendingUpgrade: null,
+      nextUpgrade: null,
+      upgradeOptions: [],
+      upgradeType: null,
+      paused: false,
+      mouseX: 0,
+      mouseY: 0,
+      spawnInterval: 120,
+      spawnTimer: 120,
+      spawnIncreaseTimer: 1800,
+      timeFrames: 0,
+      beams: [],
+      comboName: '',
+      comboTimer: 0
+    };
+
+    const player = {
+      x: 100,
+      y: canvas.height - 65,
+      radius: 30,
+      speed: 3
+    };
+
+    function spawnEnemy() {
+      const r = Math.random();
+      let type = 'miniom';
+      if (r > 0.8 && state.timeFrames >= 7200) type = 'voador';
+      else if (r > 0.6 && state.timeFrames >= 3600) type = 'tanker';
+
+      const baseStats = {
+        miniom: { hp: 3, speed: 1.5, size: 60 },
+        tanker: { hp: 8, speed: 0.8, size: 90 },
+        voador: { hp: 2, speed: 2.2, size: 50 }
+      };
+      const mult = Math.pow(1.5, Math.floor(state.level / 5));
+      const stats = baseStats[type];
+      const groundY = canvas.height - stats.size - 30;
+      const enemy = {
+        x: canvas.width + 20,
+        y: type === 'voador' ? canvas.height / 2 : groundY,
+        speed: stats.speed,
+        hp: Math.floor(stats.hp * mult),
+        size: stats.size,
+        burn: 0,
+        burnDamage: 0,
+        slow: 0,
+        slowFactor: 1,
+        knockback: 0,
+        type,
+        flying: type === 'voador'
+      };
+      if (type === 'miniom') {
+        enemy.baseY = groundY;
+        enemy.vy = 0;
+        enemy.jumpCooldown = Math.floor(Math.random() * 180) + 120; // 2-5 seconds
+      }
+      state.enemies.push(enemy);
+    }
+
+    function shootBasic() {
+      const angle = Math.atan2(state.mouseY - player.y, state.mouseX - player.x);
+      const speed = 7;
+      state.bullets.push({
+        x: player.x,
+        y: player.y,
+        dx: Math.cos(angle) * speed,
+        dy: Math.sin(angle) * speed,
+        dmg: state.baseDamage,
+        elements: [],
+        aoe: state.bulletAOE
+      });
+    }
+
+   function castQ() {
+     if (state.cooldowns.Q > 0 || state.paused) return;
+     const range = 15 + state.upgrades.Q.length * 10;
+      state.cooldowns.Q = state.qCooldown;
+     state.enemies.forEach(e => {
+       if (e.y > player.y - range && e.y < player.y + range && e.x > player.x) {
+         // use a copy to avoid accidental mutation of the spell element array
+         applyElementEffects(e, state.spellElements.Q.slice());
+          e.hp -= state.baseDamage + state.qDamageBonus;
+       }
+     });
+
+      // visual lightning effect
+      const cols = { Fire: 'red', Ice: 'cyan', Wind: 'yellow' };
+      let color = 'white';
+      state.spellElements.Q.forEach(el => { if (cols[el]) color = cols[el]; });
+      const width = 4 + state.spellElements.Q.length * 2;
+      const pts = [];
+      for (let x = player.x; x < canvas.width; x += 20) {
+        pts.push({ x, y: player.y + (Math.random() - 0.5) * 10 * (state.spellElements.Q.length + 1) });
+      }
+      state.beams.push({ points: pts, color, width, frames: 10 });
+    }
+
+   function castW() {
+     if (state.cooldowns.W > 0 || state.paused) return;
+     state.cooldowns.W = 300;
+     const extraHp = state.upgrades.W.length * 5;
+     const barrier = {
+       x: player.x + 60,
+       y: player.y - 10,
+       width: 20,
+        height: state.barrierHeight,
+        hp: 5 + state.level * 2 + extraHp + state.wBonusHp,
+        elements: state.spellElements.W.slice()
+      };
+      state.barriers.push(barrier);
+    }
+
+   function castE() {
+     if (state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
+     state.cooldowns.E = 300;
+      const dmg = 1 + state.upgrades.E.length + state.eDamageBonus;
+      state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0, dmg });
+    }
+
+    function getBulletColor(elements) {
+      const map = { Fire: 'red', Ice: 'cyan', Wind: 'yellow' };
+      if (!elements || elements.length === 0) return '#c8a2c8';
+      const last = elements[elements.length - 1];
+      return map[last] || '#c8a2c8';
+    }
+
+    const elementOptions = ['Fire', 'Ice', 'Wind'];
+    const generalUpgradesPool = [
+      { type: 'stat', prop: 'autoFireDelay', value: -5, desc: 'Tiros mais rápidos' },
+      { type: 'stat', prop: 'baseDamage', value: 1, desc: '+1 dano base' },
+      { type: 'stat', prop: 'qDamageBonus', value: 1, desc: '+1 dano do Q' },
+      { type: 'stat', prop: 'wBonusHp', value: 5, desc: '+5 vida do W' },
+      { type: 'stat', prop: 'eDamageBonus', value: 1, desc: '+1 dano do E' },
+      { type: 'stat', prop: 'qCooldown', value: -30, desc: 'Q recarrega mais rápido' },
+      { type: 'stat', prop: 'turretFireDelay', value: -10, desc: 'Torreta atira mais rápido' },
+      { type: 'stat', prop: 'barrierHeight', value: 10, desc: 'Barreira mais alta' },
+      { type: 'stat', prop: 'bulletAOE', value: 20, desc: 'Ataque básico em área' }
+    ];
+
+    const comboMap = {
+      'Fire,Ice': 'Vapor',
+      'Fire,Wind': 'Fogo Selvagem',
+      'Ice,Wind': 'Nevasca',
+      'Fire,Fire': 'Chama Azul',
+      'Ice,Ice': 'Geada Profunda',
+      'Wind,Wind': 'Tornado',
+      'Fire,Fire,Fire': 'Chama Branca',
+      'Ice,Ice,Ice': 'Era Glacial',
+      'Wind,Wind,Wind': 'Ciclone',
+      'Fire,Fire,Ice': 'Vapor Escaldante',
+      'Fire,Fire,Wind': 'Tempestade de Fogo',
+      'Ice,Ice,Fire': 'Gelo Candente',
+      'Ice,Ice,Wind': 'Nevasca Congelante',
+      'Wind,Wind,Fire': 'Furacão Flamejante',
+      'Wind,Wind,Ice': 'Tempestade Gélida',
+      'Fire,Ice,Wind': 'Tempestade Elemental'
+    };
+
+    function getComboName(elems) {
+      if (!elems || elems.length < 2) return null;
+      const key = elems.slice(0, 3).sort().join(',');
+      return comboMap[key] || null;
+    }
+
+   function levelUp() {
+     state.xp -= state.xpToNext;
+     state.level++;
+      state.xpToNext = Math.floor(state.xpToNext * 1.3);
+
+      const opts = [];
+      while (opts.length < 3) {
+        const rand = generalUpgradesPool[Math.floor(Math.random() * generalUpgradesPool.length)];
+        if (!opts.includes(rand)) opts.push(rand);
+      }
+      state.upgradeOptions = opts;
+      state.pendingUpgrade = true;
+      state.paused = true;
+      state.upgradeType = 'general';
+      showGeneralUpgrades();
+   }
+
+    function applyElementUpgrade(key) {
+      const up = state.nextUpgrade;
+      if (!up) return;
+      if (up.type === 'element') {
+        state.spellElements[key].push(up.element);
+        state.upgrades[key].push(up.element);
+      }
+      state.pendingUpgrade = false;
+      state.paused = false;
+      state.nextUpgrade = null;
+      state.upgradeType = null;
+      document.getElementById('upgradePrompt').style.display = 'none';
+    }
+
+    function showGeneralUpgrades() {
+      const cont = document.getElementById('generalUpgradePrompt');
+      cont.innerHTML = '';
+      state.upgradeOptions.forEach((u, i) => {
+        const div = document.createElement('div');
+        div.className = 'upgradeCard';
+        div.textContent = u.desc;
+        div.onclick = () => chooseUpgrade(i);
+        cont.appendChild(div);
+      });
+      cont.style.display = 'block';
+    }
+
+    function chooseUpgrade(idx) {
+      if (state.upgradeType !== 'general') return;
+      const up = state.upgradeOptions[idx];
+      applyStatUpgrade(up);
+      state.upgradeOptions = [];
+      state.upgradeType = null;
+      document.getElementById('generalUpgradePrompt').style.display = 'none';
+      state.pendingUpgrade = false;
+      state.paused = false;
+      if (state.level % 5 === 0) {
+        const el = elementOptions[Math.floor(Math.random() * elementOptions.length)];
+        state.nextUpgrade = { type: 'element', element: el, desc: el };
+        state.pendingUpgrade = true;
+        state.paused = true;
+        document.getElementById('upgradeElement').textContent = el;
+        document.getElementById('upgradePrompt').style.display = 'block';
+        state.upgradeType = 'element';
+      }
+    }
+
+    function applyStatUpgrade(up) {
+      if (up.prop === 'autoFireDelay') {
+        state.autoFireDelay = Math.max(5, state.autoFireDelay + up.value);
+      } else if (up.prop === 'baseDamage') {
+        state.baseDamage += up.value;
+      } else if (up.prop === 'qDamageBonus') {
+        state.qDamageBonus += up.value;
+      } else if (up.prop === 'wBonusHp') {
+        state.wBonusHp += up.value;
+      } else if (up.prop === 'eDamageBonus') {
+        state.eDamageBonus += up.value;
+      } else if (up.prop === 'qCooldown') {
+        state.qCooldown = Math.max(60, state.qCooldown + up.value);
+      } else if (up.prop === 'turretFireDelay') {
+        state.turretFireDelay = Math.max(10, state.turretFireDelay + up.value);
+      } else if (up.prop === 'barrierHeight') {
+        state.barrierHeight += up.value;
+      } else if (up.prop === 'bulletAOE') {
+        state.bulletAOE += up.value;
+      }
+      state.generalUpgrades.push(up.desc);
+    }
+
+    function formatTime(frames) {
+      const sec = Math.floor(frames / 60);
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return m + ":" + (s < 10 ? "0" + s : s);
+    }
+
+    function formatElements(elems) {
+      if (!elems || elems.length === 0) return '-';
+      const combo = getComboName(elems);
+      return combo || elems.join(',');
+    }
+
+    function updateHUD() {
+      document.getElementById("level").textContent = state.level;
+      const pct = Math.min(1, state.xp / state.xpToNext) * 100;
+      document.getElementById("xpBar").style.width = pct + "%";
+      document.getElementById("qUpgrades").textContent = formatElements(state.upgrades.Q);
+      document.getElementById("wUpgrades").textContent = formatElements(state.upgrades.W);
+      document.getElementById("eUpgrades").textContent = formatElements(state.upgrades.E);
+      document.getElementById("timer").textContent = formatTime(state.timeFrames);
+      document.getElementById("comboName").textContent = state.comboTimer > 0 ? state.comboName : "None";
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      state.beams = state.beams.filter(b => {
+        ctx.strokeStyle = b.color;
+        ctx.lineWidth = b.width;
+        ctx.beginPath();
+        ctx.moveTo(player.x, player.y);
+        b.points.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+        b.frames--;
+        return b.frames > 0;
+      });
+
+      ctx.fillStyle = "#444";
+      ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+
+      if (mageImg.complete) {
+        ctx.drawImage(mageImg, player.x - 40, player.y - 40, 80, 80);
+      } else {
+        ctx.fillStyle = "purple";
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      state.enemies.forEach(e => {
+        let img;
+        if (e.type === 'tanker') img = orcImg;
+        else if (e.type === 'voador') img = batImg;
+        else img = goblinImg;
+        if (img.complete) {
+          ctx.drawImage(img, e.x, e.y, e.size, e.size);
+        } else {
+          if (e.type === 'tanker') ctx.fillStyle = 'brown';
+          else if (e.type === 'voador') ctx.fillStyle = 'yellow';
+          else ctx.fillStyle = 'green';
+          ctx.fillRect(e.x, e.y, e.size, e.size);
+        }
+        if (e.burn > 0 && state.timeFrames % 20 < 10) {
+          ctx.fillStyle = 'rgba(255,100,0,0.5)';
+          ctx.fillRect(e.x, e.y, e.size, e.size);
+        }
+      });
+
+      state.bullets.forEach(b => {
+        if (magiaImg.complete) {
+          ctx.drawImage(magiaImg, b.x - 10, b.y - 10, 20, 20);
+        } else {
+          ctx.fillStyle = b.color || "white";
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      ctx.fillStyle = "blue";
+      state.barriers.forEach(b => {
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+      });
+
+      ctx.fillStyle = "orange";
+      state.turrets.forEach(t => {
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function applyElementEffects(enemy, elements) {
+      if (!elements) return;
+      const combo = getComboName(elements);
+      if (combo) {
+        state.comboName = combo;
+        state.comboTimer = 120;
+      }
+
+      const fireCount = elements.filter(e => e === 'Fire').length;
+      const iceCount = elements.filter(e => e === 'Ice').length;
+      const windCount = elements.filter(e => e === 'Wind').length;
+
+      if (fireCount > 0) {
+        enemy.burn = fireCount >= 3 ? 300 : 180; // frames
+        enemy.burnDamage = fireCount === 1 ? 0.5 : fireCount === 2 ? 1 : 2;
+      }
+
+      if (iceCount > 0) {
+        enemy.slow = iceCount >= 3 ? 120 : iceCount === 2 ? 120 : 90;
+        enemy.slowFactor = iceCount >= 3 ? 0 : iceCount === 2 ? 0.5 : 0.75;
+      }
+
+      if (windCount > 0) {
+        enemy.knockback = windCount === 1 ? 20 : windCount === 2 ? 40 : 80;
+      }
+    }
+
+    function updateGame() {
+      state.timeFrames++;
+      if (state.comboTimer > 0) state.comboTimer--;
+      if (++state.autoFireTimer % state.autoFireDelay === 0) shootBasic();
+      if (state.spawnTimer-- <= 0) {
+        spawnEnemy();
+        state.spawnTimer = state.spawnInterval;
+      }
+      if (--state.spawnIncreaseTimer <= 0) {
+        state.spawnInterval = Math.floor(state.spawnInterval * 1.2);
+        state.spawnIncreaseTimer = 1800;
+      }
+      if (state.paused) return;
+
+      const remainingEnemies = [];
+      state.enemies.forEach(e => {
+        if (e.burn > 0) {
+          e.burn--;
+          e.hp -= e.burnDamage / 60;
+        }
+        if (e.slow > 0) {
+          e.slow--;
+          if (e.slow === 0) e.slowFactor = 1;
+        }
+
+        if (e.knockback && e.knockback > 0) {
+          e.x += e.knockback;
+          e.knockback *= 0.6;
+          if (e.knockback < 1) e.knockback = 0;
+        }
+
+        if (e.type === 'miniom') {
+          if (e.jumpCooldown > 0) {
+            e.jumpCooldown--;
+          } else if (e.vy === 0) {
+            e.vy = -8; // jump impulse
+            e.jumpCooldown = Math.floor(Math.random() * 180) + 120;
+          }
+          e.y += e.vy;
+          if (e.y < e.baseY) {
+            e.vy += 0.5; // gravity
+          } else {
+            e.y = e.baseY;
+            e.vy = 0;
+          }
+        }
+
+        const spd = e.slow > 0 ? e.speed * e.slowFactor : e.speed;
+        e.x -= spd;
+        if (e.hp > 0 && e.x > -e.size) remainingEnemies.push(e);
+        else if (e.hp <= 0) state.xp++;
+      });
+      state.enemies = remainingEnemies;
+
+      // turret logic
+      state.turrets.forEach(t => {
+        if (t.cooldown > 0) {
+          t.cooldown--;
+          return;
+        }
+        const target = state.enemies[0];
+        if (target) {
+          const ang = Math.atan2(target.y - t.y, target.x - t.x);
+          const spd = 6;
+          state.bullets.push({
+            x: t.x,
+            y: t.y,
+            dx: Math.cos(ang) * spd,
+            dy: Math.sin(ang) * spd,
+            dmg: t.dmg,
+            // use current elements so upgrades affect existing turrets
+            elements: state.spellElements.E.slice(),
+            color: getBulletColor(state.spellElements.E),
+            aoe: state.bulletAOE
+          });
+        }
+        t.cooldown = state.turretFireDelay;
+      });
+
+      // move bullets and handle collisions
+      state.bullets = state.bullets.filter(b => {
+        b.x += b.dx;
+        b.y += b.dy;
+        for (let i = 0; i < state.enemies.length; i++) {
+          const e = state.enemies[i];
+          const half = e.size / 2;
+          if (Math.abs(b.x - (e.x + half)) < half && Math.abs(b.y - (e.y + half)) < half) {
+            applyElementEffects(e, b.elements);
+            e.hp -= b.dmg;
+            if (b.aoe > 0) {
+              state.enemies.forEach(o => {
+                if (o === e) return;
+                const h2 = o.size / 2;
+                const dist = Math.hypot(b.x - (o.x + h2), b.y - (o.y + h2));
+                if (dist < b.aoe) {
+                  applyElementEffects(o, b.elements);
+                  o.hp -= b.dmg;
+                }
+              });
+            }
+            if (e.hp <= 0) {
+              state.enemies.splice(i, 1);
+              state.xp++;
+            }
+            return false;
+          }
+        }
+        return b.x < canvas.width && b.y > 0 && b.y < canvas.height;
+      });
+
+      // simple barrier collision
+      state.barriers = state.barriers.filter(barr => {
+        state.enemies.forEach(e => {
+          if (e.x < barr.x + barr.width && e.x + e.size > barr.x && e.y < barr.y + barr.height && e.y + e.size > barr.y) {
+            applyElementEffects(e, barr.elements);
+            e.x = barr.x + barr.width;
+            barr.hp--;
+          }
+        });
+        return barr.hp > 0;
+      });
+
+      Object.keys(state.cooldowns).forEach(k => state.cooldowns[k] = Math.max(0, state.cooldowns[k] - 1));
+
+      if (state.xp >= state.xpToNext && !state.pendingUpgrade) levelUp();
+    }
+
+    function gameLoop() {
+      updateGame();
+      drawGame();
+      updateHUD();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+
+    canvas.addEventListener("mousemove", e => {
+      const rect = canvas.getBoundingClientRect();
+      state.mouseX = e.clientX - rect.left;
+      state.mouseY = e.clientY - rect.top;
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key.toLowerCase() === 'q') castQ();
+      if (e.key.toLowerCase() === 'w') castW();
+      if (e.key.toLowerCase() === 'e') castE();
+    });
+
+    document.getElementById('levelUpBtn').addEventListener('click', () => {
+      if (!state.pendingUpgrade) {
+        state.xp = state.xpToNext;
+        levelUp();
+      }
+    });
