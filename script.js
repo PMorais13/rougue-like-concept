@@ -50,9 +50,9 @@
       paused: false,
       mouseX: 0,
       mouseY: 0,
-      spawnInterval: 120,
-      spawnTimer: 120,
-      spawnIncreaseTimer: 1800,
+      spawnInterval: GAME_CONSTANTS.SPAWN_INTERVAL,
+      spawnTimer: GAME_CONSTANTS.SPAWN_INTERVAL,
+      spawnIncreaseTimer: GAME_CONSTANTS.SPAWN_INCREASE_TIMER,
       timeFrames: 0,
       beams: [],
       comboName: '',
@@ -63,7 +63,7 @@
       x: 100,
       y: canvas.height - 65,
       radius: 30,
-      speed: 3
+      speed: GAME_CONSTANTS.PLAYER_SPEED
     };
 
     function spawnEnemy() {
@@ -72,11 +72,7 @@
       if (r > 0.8 && state.timeFrames >= 7200) type = 'voador';
       else if (r > 0.6 && state.timeFrames >= 3600) type = 'tanker';
 
-      const baseStats = {
-        miniom: { hp: 3, speed: 1.5, size: 60 },
-        tanker: { hp: 8, speed: 0.8, size: 90 },
-        voador: { hp: 2, speed: 2.2, size: 50 }
-      };
+      const baseStats = GAME_CONSTANTS.ENEMY_BASE_STATS;
       const mult = Math.pow(1.5, Math.floor(state.level / 5));
       const stats = baseStats[type];
       const groundY = canvas.height - stats.size - 30;
@@ -103,11 +99,15 @@
       if (type === 'miniom') {
         enemy.baseY = groundY;
         enemy.vy = 0;
-        enemy.jumpCooldown = Math.floor(Math.random() * 180) + 120; // 2-5 seconds
+        enemy.jumpCooldown =
+          Math.floor(Math.random() * GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_VAR) +
+          GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_MIN; // 2-5 seconds
       }
       if (type === 'tanker') {
-        enemy.dashCooldown = Math.floor(Math.random() * 240) + 120;
-        enemy.dashDuration = 30;
+        enemy.dashCooldown =
+          Math.floor(Math.random() * GAME_CONSTANTS.TANKER_DASH_COOLDOWN_VAR) +
+          GAME_CONSTANTS.TANKER_DASH_COOLDOWN_MIN;
+        enemy.dashDuration = GAME_CONSTANTS.TANKER_DASH_DURATION;
         enemy.dashTime = 0;
       }
       state.enemies.push(enemy);
@@ -115,7 +115,7 @@
 
     function shootBasic() {
       const angle = Math.atan2(state.mouseY - player.y, state.mouseX - player.x);
-      const speed = 7;
+      const speed = GAME_CONSTANTS.BULLET_SPEED;
       state.bullets.push({
         x: player.x,
         y: player.y,
@@ -435,7 +435,7 @@
       }
       if (--state.spawnIncreaseTimer <= 0) {
         state.spawnInterval = Math.floor(state.spawnInterval * 1.2);
-        state.spawnIncreaseTimer = 1800;
+        state.spawnIncreaseTimer = GAME_CONSTANTS.SPAWN_INCREASE_TIMER;
       }
       if (state.paused) return;
 
@@ -460,12 +460,14 @@
           if (e.jumpCooldown > 0) {
             e.jumpCooldown--;
           } else if (e.vy === 0) {
-            e.vy = -8; // jump impulse
-            e.jumpCooldown = Math.floor(Math.random() * 180) + 120;
+            e.vy = GAME_CONSTANTS.MINIOM_JUMP_VELOCITY; // jump impulse
+            e.jumpCooldown =
+              Math.floor(Math.random() * GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_VAR) +
+              GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_MIN;
           }
           e.y += e.vy;
           if (e.y < e.baseY) {
-            e.vy += 0.5; // gravity
+            e.vy += GAME_CONSTANTS.GRAVITY; // gravity
           } else {
             e.y = e.baseY;
             e.vy = 0;
@@ -480,11 +482,14 @@
         if (e.type === 'tanker') {
           if (e.dashTime > 0) {
             e.dashTime--;
-            spd *= 3;
+            spd *= GAME_CONSTANTS.DASH_SPEED_MULTIPLIER;
           } else {
             if (e.dashCooldown-- <= 0) {
               e.dashTime = e.dashDuration;
-              e.dashCooldown = Math.floor(Math.random() * 240) + 120;
+              e.dashCooldown =
+                Math.floor(
+                  Math.random() * GAME_CONSTANTS.TANKER_DASH_COOLDOWN_VAR
+                ) + GAME_CONSTANTS.TANKER_DASH_COOLDOWN_MIN;
             }
           }
         }
@@ -503,7 +508,7 @@
         const target = state.enemies[0];
         if (target) {
           const ang = Math.atan2(target.y - t.y, target.x - t.x);
-          const spd = 6;
+          const spd = GAME_CONSTANTS.TURRET_BULLET_SPEED;
           state.bullets.push({
             x: t.x,
             y: t.y,
