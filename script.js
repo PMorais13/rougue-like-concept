@@ -101,7 +101,7 @@ function spawnEnemy() {
     enemy.vy = 0;
     enemy.jumpCooldown =
       Math.floor(Math.random() * GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_VAR) +
-      GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_MIN; // 2-5 seconds
+      GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_MIN; // 2-5 segundos
   }
   if (type === "tanker") {
     enemy.dashCooldown =
@@ -133,13 +133,13 @@ function castQ() {
   state.cooldowns.Q = state.qCooldown;
   state.enemies.forEach((e) => {
     if (e.y > player.y - range && e.y < player.y + range && e.x > player.x) {
-      // use a copy to avoid accidental mutation of the spell element array
+      // usamos uma cópia para evitar mudar o array de elementos da magia
       applyElementEffects(e, state.spellElements.Q.slice());
       e.hp -= state.baseDamage + state.qDamageBonus;
     }
   });
 
-  // visual lightning effect
+  // efeito visual do relâmpago
   const cols = { Fire: "red", Ice: "cyan", Wind: "yellow" };
   let color = "white";
   state.spellElements.Q.forEach((el) => {
@@ -437,7 +437,7 @@ function applyElementEffects(enemy, elements) {
   const windCount = elements.filter((e) => e === "Wind").length;
 
   if (fireCount > 0) {
-    enemy.burn = fireCount >= 3 ? 300 : 180; // frames
+    enemy.burn = fireCount >= 3 ? 300 : 180; // quadros
     enemy.burnDamage = fireCount === 1 ? 0.5 : fireCount === 2 ? 1 : 2;
   }
 
@@ -488,14 +488,14 @@ function updateGame() {
       if (e.jumpCooldown > 0) {
         e.jumpCooldown--;
       } else if (e.vy === 0) {
-        e.vy = GAME_CONSTANTS.MINIOM_JUMP_VELOCITY; // jump impulse
+        e.vy = GAME_CONSTANTS.MINIOM_JUMP_VELOCITY; // impulso do pulo
         e.jumpCooldown =
           Math.floor(Math.random() * GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_VAR) +
           GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_MIN;
       }
       e.y += e.vy;
       if (e.y < e.baseY) {
-        e.vy += GAME_CONSTANTS.GRAVITY; // gravity
+        e.vy += GAME_CONSTANTS.GRAVITY; // gravidade
       } else {
         e.y = e.baseY;
         e.vy = 0;
@@ -530,7 +530,7 @@ function updateGame() {
   });
   state.enemies = remainingEnemies;
 
-  // turret logic
+  // lógica da torreta
   state.turrets.forEach((t) => {
     if (t.cooldown > 0) {
       t.cooldown--;
@@ -546,7 +546,7 @@ function updateGame() {
         dx: Math.cos(ang) * spd,
         dy: Math.sin(ang) * spd,
         dmg: t.dmg,
-        // use current elements so upgrades affect existing turrets
+        // usa os elementos atuais para que melhorias afetem torretas existentes
         elements: state.spellElements.E.slice(),
         color: getBulletColor(state.spellElements.E),
         aoe: state.bulletAOE,
@@ -555,7 +555,7 @@ function updateGame() {
     t.cooldown = state.turretFireDelay;
   });
 
-  // move bullets and handle collisions
+  // movimenta projéteis e trata colisões
   state.bullets = state.bullets.filter((b) => {
     b.x += b.dx;
     b.y += b.dy;
@@ -589,7 +589,7 @@ function updateGame() {
     return b.x < canvas.width && b.y > 0 && b.y < canvas.height;
   });
 
-  // simple barrier collision
+  // colisão simples da barreira
   state.barriers = state.barriers.filter((barr) => {
     state.enemies.forEach((e) => {
       if (
