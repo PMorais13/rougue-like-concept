@@ -195,12 +195,7 @@ function getBulletColor(elements) {
 
 const elementOptions = ["Fire", "Ice", "Wind"];
 const generalUpgradesPool = [
-  {
-    type: "stat",
-    prop: "autoFireDelay",
-    value: -5,
-    desc: "Tiros mais rápidos",
-  },
+  UPGRADE_FAST_SHOT,
   { type: "stat", prop: "baseDamage", value: 1, desc: "+1 dano base" },
   { type: "stat", prop: "qDamageBonus", value: 1, desc: "+1 dano do Q" },
   { type: "stat", prop: "wBonusHp", value: 5, desc: "+5 vida do W" },

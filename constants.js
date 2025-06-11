@@ -25,3 +25,11 @@ const GAME_CONSTANTS = {
     voador: { hp: 2, speed: 2.5, size: 50 },
   },
 };
+
+// upgrade definitions
+const UPGRADE_FAST_SHOT = {
+  type: "stat",
+  prop: "autoFireDelay",
+  value: -5,
+  desc: "Tiros mais rápidos",
+};
