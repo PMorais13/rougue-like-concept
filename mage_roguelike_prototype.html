@@ -106,6 +106,7 @@
         hp: 3,
         burn: 0,
         slow: 0,
+        knockback: 0,
         flying
       });
     }
@@ -167,6 +168,13 @@
       state.cooldowns.E = 300;
       const dmg = 1 + state.upgrades.E.length;
       state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0, dmg, elements: state.spellElements.E.slice() });
+    }
+
+    function getBulletColor(elements) {
+      const map = { Fire: 'red', Ice: 'cyan', Wind: 'yellow' };
+      if (!elements || elements.length === 0) return '#c8a2c8';
+      const last = elements[elements.length - 1];
+      return map[last] || '#c8a2c8';
     }
 
     const elementOptions = ['Fire', 'Ice', 'Wind'];
@@ -263,8 +271,8 @@
       ctx.fillStyle = "green";
       state.enemies.forEach(e => ctx.fillRect(e.x, e.y, 30, 30));
 
-      ctx.fillStyle = "white";
       state.bullets.forEach(b => {
+        ctx.fillStyle = b.color || "white";
         ctx.beginPath();
         ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
         ctx.fill();
@@ -287,7 +295,7 @@
       if (!elements) return;
       if (elements.includes('Fire')) enemy.burn = 60;
       if (elements.includes('Ice')) enemy.slow = 60;
-      if (elements.includes('Wind')) enemy.x += 20;
+      if (elements.includes('Wind')) enemy.knockback = 20;
     }
 
     function updateGame() {
@@ -307,6 +315,13 @@
       state.enemies.forEach(e => {
         if (e.burn > 0 && --e.burn % 20 === 0) e.hp--;
         if (e.slow > 0) e.slow--;
+
+        if (e.knockback && e.knockback > 0) {
+          e.x += e.knockback;
+          e.knockback *= 0.6;
+          if (e.knockback < 1) e.knockback = 0;
+        }
+
         const spd = e.slow > 0 ? e.speed * 0.5 : e.speed;
         e.x -= spd;
         if (e.hp > 0 && e.x > -40) remainingEnemies.push(e);
@@ -324,7 +339,15 @@
         if (target) {
           const ang = Math.atan2(target.y - t.y, target.x - t.x);
           const spd = 6;
-          state.bullets.push({ x: t.x, y: t.y, dx: Math.cos(ang) * spd, dy: Math.sin(ang) * spd, dmg: t.dmg, elements: t.elements });
+          state.bullets.push({
+            x: t.x,
+            y: t.y,
+            dx: Math.cos(ang) * spd,
+            dy: Math.sin(ang) * spd,
+            dmg: t.dmg,
+            elements: t.elements,
+            color: getBulletColor(t.elements)
+          });
         }
         t.cooldown = 60;
       });
