@@ -172,7 +172,9 @@
         hp: Math.floor(stats.hp * mult),
         size: stats.size,
         burn: 0,
+        burnDamage: 0,
         slow: 0,
+        slowFactor: 1,
         knockback: 0,
         type,
         flying: type === 'voador'
@@ -381,6 +383,10 @@
           else ctx.fillStyle = 'green';
           ctx.fillRect(e.x, e.y, e.size, e.size);
         }
+        if (e.burn > 0 && state.timeFrames % 20 < 10) {
+          ctx.fillStyle = 'rgba(255,100,0,0.5)';
+          ctx.fillRect(e.x, e.y, e.size, e.size);
+        }
       });
 
       state.bullets.forEach(b => {
@@ -410,9 +416,24 @@
         state.comboName = combo;
         state.comboTimer = 120;
       }
-      if (elements.includes('Fire')) enemy.burn = 60;
-      if (elements.includes('Ice')) enemy.slow = 60;
-      if (elements.includes('Wind')) enemy.knockback = 20;
+
+      const fireCount = elements.filter(e => e === 'Fire').length;
+      const iceCount = elements.filter(e => e === 'Ice').length;
+      const windCount = elements.filter(e => e === 'Wind').length;
+
+      if (fireCount > 0) {
+        enemy.burn = fireCount >= 3 ? 300 : 180; // frames
+        enemy.burnDamage = fireCount === 1 ? 0.5 : fireCount === 2 ? 1 : 2;
+      }
+
+      if (iceCount > 0) {
+        enemy.slow = iceCount >= 3 ? 120 : iceCount === 2 ? 120 : 90;
+        enemy.slowFactor = iceCount >= 3 ? 0 : iceCount === 2 ? 0.5 : 0.75;
+      }
+
+      if (windCount > 0) {
+        enemy.knockback = windCount === 1 ? 20 : windCount === 2 ? 40 : 80;
+      }
     }
 
     function updateGame() {
@@ -431,8 +452,14 @@
 
       const remainingEnemies = [];
       state.enemies.forEach(e => {
-        if (e.burn > 0 && --e.burn % 20 === 0) e.hp--;
-        if (e.slow > 0) e.slow--;
+        if (e.burn > 0) {
+          e.burn--;
+          e.hp -= e.burnDamage / 60;
+        }
+        if (e.slow > 0) {
+          e.slow--;
+          if (e.slow === 0) e.slowFactor = 1;
+        }
 
         if (e.knockback && e.knockback > 0) {
           e.x += e.knockback;
@@ -440,7 +467,7 @@
           if (e.knockback < 1) e.knockback = 0;
         }
 
-        const spd = e.slow > 0 ? e.speed * 0.5 : e.speed;
+        const spd = e.slow > 0 ? e.speed * e.slowFactor : e.speed;
         e.x -= spd;
         if (e.hp > 0 && e.x > -e.size) remainingEnemies.push(e);
         else if (e.hp <= 0) state.xp++;
