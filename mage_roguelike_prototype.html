@@ -308,13 +308,19 @@
       return m + ":" + (s < 10 ? "0" + s : s);
     }
 
+    function formatElements(elems) {
+      if (!elems || elems.length === 0) return '-';
+      const combo = getComboName(elems);
+      return combo || elems.join(',');
+    }
+
     function updateHUD() {
       document.getElementById("level").textContent = state.level;
       const pct = Math.min(1, state.xp / state.xpToNext) * 100;
       document.getElementById("xpBar").style.width = pct + "%";
-      document.getElementById("qUpgrades").textContent = state.upgrades.Q.join(",") || "-";
-      document.getElementById("wUpgrades").textContent = state.upgrades.W.join(",") || "-";
-      document.getElementById("eUpgrades").textContent = state.upgrades.E.join(",") || "-";
+      document.getElementById("qUpgrades").textContent = formatElements(state.upgrades.Q);
+      document.getElementById("wUpgrades").textContent = formatElements(state.upgrades.W);
+      document.getElementById("eUpgrades").textContent = formatElements(state.upgrades.E);
       document.getElementById("timer").textContent = formatTime(state.timeFrames);
       document.getElementById("comboName").textContent = state.comboTimer > 0 ? state.comboName : "None";
     }
