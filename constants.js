@@ -16,7 +16,7 @@ const GAME_CONSTANTS = {
   TANKER_DASH_DURATION: 70, // duration of tanker dash
   DASH_SPEED_MULTIPLIER: 3, // speed multiplier while dashing
   XP_PER_ENEMY: 1, // experience points gained per enemy defeated
-  XP_LEVEL_COEFF: 1.3, // multiplier for XP needed per level
+  XP_LEVEL_COEFF: 1.2, // multiplier for XP needed per level
   ENEMY_BASE_STATS: {
     miniom: { hp: 3, speed: 1.8, size: 60 },
     tanker: { hp: 10, speed: 1, size: 100 },
