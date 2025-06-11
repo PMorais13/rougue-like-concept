@@ -28,7 +28,7 @@
       border-radius: 4px;
       font-size: 14px;
     }
-    #upgradePrompt {
+    #upgradePrompt, #generalUpgradePrompt {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -37,6 +37,13 @@
       padding: 20px;
       border: 2px solid #555;
       display: none;
+    }
+    .upgradeCard {
+      background: #333;
+      border: 1px solid #555;
+      padding: 10px;
+      margin: 5px;
+      cursor: pointer;
     }
     #timer {
       color: #0f0;
@@ -90,10 +97,11 @@
   </div>
   <div id="upgradePrompt">
     <p>Escolha onde aplicar o poder: <span id="upgradeElement"></span></p>
-    <button onclick="applyUpgrade('Q')">Q</button>
-    <button onclick="applyUpgrade('W')">W</button>
-    <button onclick="applyUpgrade('E')">E</button>
+    <button onclick="applyElementUpgrade('Q')">Q</button>
+    <button onclick="applyElementUpgrade('W')">W</button>
+    <button onclick="applyElementUpgrade('E')">E</button>
   </div>
+  <div id="generalUpgradePrompt"></div>
   <canvas id="gameCanvas" width="960" height="540"></canvas>
   <script>
     const canvas = document.getElementById("gameCanvas");
@@ -134,8 +142,17 @@
       autoFireTimer: 0,
       autoFireDelay: 40,
       baseDamage: 1,
+      qDamageBonus: 0,
+      wBonusHp: 0,
+      eDamageBonus: 0,
+      qCooldown: 300,
+      turretFireDelay: 60,
+      barrierHeight: 40,
+      bulletAOE: 0,
       pendingUpgrade: null,
       nextUpgrade: null,
+      upgradeOptions: [],
+      upgradeType: null,
       paused: false,
       mouseX: 0,
       mouseY: 0,
@@ -193,22 +210,22 @@
         dx: Math.cos(angle) * speed,
         dy: Math.sin(angle) * speed,
         dmg: state.baseDamage,
-        elements: []
+        elements: [],
+        aoe: state.bulletAOE
       });
     }
 
-    function castQ() {
-      if (state.cooldowns.Q > 0 || state.paused) return;
-      const range = 15 + state.upgrades.Q.length * 10;
-      const baseCd = 300; // 5 seconds
-      state.cooldowns.Q = baseCd;
-      state.enemies.forEach(e => {
-        if (e.y > player.y - range && e.y < player.y + range && e.x > player.x) {
-          // use a copy to avoid accidental mutation of the spell element array
-          applyElementEffects(e, state.spellElements.Q.slice());
-          e.hp -= state.baseDamage;
-        }
-      });
+   function castQ() {
+     if (state.cooldowns.Q > 0 || state.paused) return;
+     const range = 15 + state.upgrades.Q.length * 10;
+      state.cooldowns.Q = state.qCooldown;
+     state.enemies.forEach(e => {
+       if (e.y > player.y - range && e.y < player.y + range && e.x > player.x) {
+         // use a copy to avoid accidental mutation of the spell element array
+         applyElementEffects(e, state.spellElements.Q.slice());
+          e.hp -= state.baseDamage + state.qDamageBonus;
+       }
+     });
 
       // visual lightning effect
       const cols = { Fire: 'red', Ice: 'cyan', Wind: 'yellow' };
@@ -222,25 +239,25 @@
       state.beams.push({ points: pts, color, width, frames: 10 });
     }
 
-    function castW() {
-      if (state.cooldowns.W > 0 || state.paused) return;
-      state.cooldowns.W = 300;
-      const extraHp = state.upgrades.W.length * 5;
-      const barrier = {
-        x: player.x + 60,
-        y: player.y - 10,
-        width: 20,
-        height: 40,
-        hp: 5 + state.level * 2 + extraHp,
+   function castW() {
+     if (state.cooldowns.W > 0 || state.paused) return;
+     state.cooldowns.W = 300;
+     const extraHp = state.upgrades.W.length * 5;
+     const barrier = {
+       x: player.x + 60,
+       y: player.y - 10,
+       width: 20,
+        height: state.barrierHeight,
+        hp: 5 + state.level * 2 + extraHp + state.wBonusHp,
         elements: state.spellElements.W.slice()
       };
       state.barriers.push(barrier);
     }
 
-    function castE() {
-      if (state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
-      state.cooldowns.E = 300;
-      const dmg = 1 + state.upgrades.E.length;
+   function castE() {
+     if (state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
+     state.cooldowns.E = 300;
+      const dmg = 1 + state.upgrades.E.length + state.eDamageBonus;
       state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0, dmg });
     }
 
@@ -253,8 +270,15 @@
 
     const elementOptions = ['Fire', 'Ice', 'Wind'];
     const generalUpgradesPool = [
-      { type: 'stat', prop: 'autoFireDelay', value: -2, desc: 'Faster attacks' },
-      { type: 'stat', prop: 'baseDamage', value: 1, desc: '+1 Damage' }
+      { type: 'stat', prop: 'autoFireDelay', value: -5, desc: 'Tiros mais rápidos' },
+      { type: 'stat', prop: 'baseDamage', value: 1, desc: '+1 dano base' },
+      { type: 'stat', prop: 'qDamageBonus', value: 1, desc: '+1 dano do Q' },
+      { type: 'stat', prop: 'wBonusHp', value: 5, desc: '+5 vida do W' },
+      { type: 'stat', prop: 'eDamageBonus', value: 1, desc: '+1 dano do E' },
+      { type: 'stat', prop: 'qCooldown', value: -30, desc: 'Q recarrega mais rápido' },
+      { type: 'stat', prop: 'turretFireDelay', value: -10, desc: 'Torreta atira mais rápido' },
+      { type: 'stat', prop: 'barrierHeight', value: 10, desc: 'Barreira mais alta' },
+      { type: 'stat', prop: 'bulletAOE', value: 20, desc: 'Ataque básico em área' }
     ];
 
     const comboMap = {
@@ -282,26 +306,24 @@
       return comboMap[key] || null;
     }
 
-    function levelUp() {
-      state.xp -= state.xpToNext;
-      state.level++;
-      state.xpToNext = Math.floor(state.xpToNext * 1.5);
-      let up;
-      if (state.level % 5 === 0) {
-        const el = elementOptions[Math.floor(Math.random() * elementOptions.length)];
-        up = { type: 'element', element: el, desc: el };
-        state.pendingUpgrade = true;
-        state.paused = true;
-        state.nextUpgrade = up;
-        document.getElementById('upgradeElement').textContent = up.desc;
-        document.getElementById('upgradePrompt').style.display = 'block';
-      } else {
-        up = generalUpgradesPool[Math.floor(Math.random() * generalUpgradesPool.length)];
-        applyStatUpgrade(up);
-      }
-    }
+   function levelUp() {
+     state.xp -= state.xpToNext;
+     state.level++;
+      state.xpToNext = Math.floor(state.xpToNext * 1.3);
 
-    function applyUpgrade(key) {
+      const opts = [];
+      while (opts.length < 3) {
+        const rand = generalUpgradesPool[Math.floor(Math.random() * generalUpgradesPool.length)];
+        if (!opts.includes(rand)) opts.push(rand);
+      }
+      state.upgradeOptions = opts;
+      state.pendingUpgrade = true;
+      state.paused = true;
+      state.upgradeType = 'general';
+      showGeneralUpgrades();
+   }
+
+    function applyElementUpgrade(key) {
       const up = state.nextUpgrade;
       if (!up) return;
       if (up.type === 'element') {
@@ -311,7 +333,41 @@
       state.pendingUpgrade = false;
       state.paused = false;
       state.nextUpgrade = null;
+      state.upgradeType = null;
       document.getElementById('upgradePrompt').style.display = 'none';
+    }
+
+    function showGeneralUpgrades() {
+      const cont = document.getElementById('generalUpgradePrompt');
+      cont.innerHTML = '';
+      state.upgradeOptions.forEach((u, i) => {
+        const div = document.createElement('div');
+        div.className = 'upgradeCard';
+        div.textContent = u.desc;
+        div.onclick = () => chooseUpgrade(i);
+        cont.appendChild(div);
+      });
+      cont.style.display = 'block';
+    }
+
+    function chooseUpgrade(idx) {
+      if (state.upgradeType !== 'general') return;
+      const up = state.upgradeOptions[idx];
+      applyStatUpgrade(up);
+      state.upgradeOptions = [];
+      state.upgradeType = null;
+      document.getElementById('generalUpgradePrompt').style.display = 'none';
+      state.pendingUpgrade = false;
+      state.paused = false;
+      if (state.level % 5 === 0) {
+        const el = elementOptions[Math.floor(Math.random() * elementOptions.length)];
+        state.nextUpgrade = { type: 'element', element: el, desc: el };
+        state.pendingUpgrade = true;
+        state.paused = true;
+        document.getElementById('upgradeElement').textContent = el;
+        document.getElementById('upgradePrompt').style.display = 'block';
+        state.upgradeType = 'element';
+      }
     }
 
     function applyStatUpgrade(up) {
@@ -319,6 +375,20 @@
         state.autoFireDelay = Math.max(5, state.autoFireDelay + up.value);
       } else if (up.prop === 'baseDamage') {
         state.baseDamage += up.value;
+      } else if (up.prop === 'qDamageBonus') {
+        state.qDamageBonus += up.value;
+      } else if (up.prop === 'wBonusHp') {
+        state.wBonusHp += up.value;
+      } else if (up.prop === 'eDamageBonus') {
+        state.eDamageBonus += up.value;
+      } else if (up.prop === 'qCooldown') {
+        state.qCooldown = Math.max(60, state.qCooldown + up.value);
+      } else if (up.prop === 'turretFireDelay') {
+        state.turretFireDelay = Math.max(10, state.turretFireDelay + up.value);
+      } else if (up.prop === 'barrierHeight') {
+        state.barrierHeight += up.value;
+      } else if (up.prop === 'bulletAOE') {
+        state.bulletAOE += up.value;
       }
       state.generalUpgrades.push(up.desc);
     }
@@ -499,10 +569,11 @@
             dmg: t.dmg,
             // use current elements so upgrades affect existing turrets
             elements: state.spellElements.E.slice(),
-            color: getBulletColor(state.spellElements.E)
+            color: getBulletColor(state.spellElements.E),
+            aoe: state.bulletAOE
           });
         }
-        t.cooldown = 60;
+        t.cooldown = state.turretFireDelay;
       });
 
       // move bullets and handle collisions
@@ -515,6 +586,17 @@
           if (Math.abs(b.x - (e.x + half)) < half && Math.abs(b.y - (e.y + half)) < half) {
             applyElementEffects(e, b.elements);
             e.hp -= b.dmg;
+            if (b.aoe > 0) {
+              state.enemies.forEach(o => {
+                if (o === e) return;
+                const h2 = o.size / 2;
+                const dist = Math.hypot(b.x - (o.x + h2), b.y - (o.y + h2));
+                if (dist < b.aoe) {
+                  applyElementEffects(o, b.elements);
+                  o.hp -= b.dmg;
+                }
+              });
+            }
             if (e.hp <= 0) {
               state.enemies.splice(i, 1);
               state.xp++;
