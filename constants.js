@@ -2,7 +2,9 @@ const GAME_CONSTANTS = {
   SPAWN_INTERVAL: 160, // time between enemy spawns in frames
   SPAWN_INCREASE_SECONDS: 20, // seconds until spawn interval increases
   SPAWN_INCREASE_TIMER: 20 * 60, // frames until spawn interval increases
-  SPAWN_INCREASE_COEFF: 1.2, // multiplier applied to spawnInterval
+  // coefficient applied to spawnInterval over time. Values below 1 will
+  // decrease the interval, making enemies spawn more frequently.
+  SPAWN_INCREASE_COEFF: 0.8,
   PLAYER_SPEED: 3, // player movement speed
   PLAYER_MAX_HP: 10, // base player life (unused yet)
   BULLET_SPEED: 5, // speed of basic player bullets
