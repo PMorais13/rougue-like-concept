@@ -131,7 +131,8 @@
       state.cooldowns.Q = baseCd;
       state.enemies.forEach(e => {
         if (e.y > player.y - range && e.y < player.y + range && e.x > player.x) {
-          applyElementEffects(e, state.spellElements.Q);
+          // use a copy to avoid accidental mutation of the spell element array
+          applyElementEffects(e, state.spellElements.Q.slice());
           e.hp -= state.baseDamage;
         }
       });
@@ -345,7 +346,8 @@
             dx: Math.cos(ang) * spd,
             dy: Math.sin(ang) * spd,
             dmg: t.dmg,
-            elements: t.elements,
+            // copy turret elements so bullets keep the original effects
+            elements: t.elements.slice(),
             color: getBulletColor(t.elements)
           });
         }
