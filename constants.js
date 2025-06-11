@@ -67,7 +67,7 @@ const UPGRADE_E_DAMAGE = {
 const UPGRADE_Q_COOLDOWN = {
   type: "stat",
   prop: "qCooldown",
-  value: -10000,
+  value: -10,
   desc: "Q recarrega mais rápido",
 };
 
