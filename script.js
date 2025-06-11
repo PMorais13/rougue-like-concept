@@ -132,7 +132,9 @@ function castQ() {
   const range = 15 + state.upgrades.Q.length * 10;
   state.cooldowns.Q = state.qCooldown;
   state.enemies.forEach((e) => {
-    if (e.y > player.y - range && e.y < player.y + range && e.x > player.x) {
+    // calcula usando o centro do inimigo para acertar o Q em alvos grandes
+    const centerY = e.y + e.size / 2;
+    if (centerY > player.y - range && centerY < player.y + range && e.x > player.x) {
       // usamos uma cópia para evitar mudar o array de elementos da magia
       applyElementEffects(e, state.spellElements.Q.slice());
       e.hp -= state.baseDamage + state.qDamageBonus;
