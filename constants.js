@@ -91,3 +91,18 @@ const UPGRADE_BULLET_AOE = {
   value: 40,
   desc: "Ataque básico em área",
 };
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    GAME_CONSTANTS,
+    UPGRADE_FAST_SHOT,
+    UPGRADE_BASE_DAMAGE,
+    UPGRADE_Q_DAMAGE,
+    UPGRADE_W_HEALTH,
+    UPGRADE_E_DAMAGE,
+    UPGRADE_Q_COOLDOWN,
+    UPGRADE_TURRET_FASTER,
+    UPGRADE_BARRIER_HEIGHT,
+    UPGRADE_BULLET_AOE,
+  };
+}

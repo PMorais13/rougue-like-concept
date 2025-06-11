@@ -240,6 +240,12 @@ function levelUp() {
     state.xpToNext * GAME_CONSTANTS.XP_LEVEL_COEFF
   );
 
+  // derrotar automaticamente todos inimigos em campo
+  state.enemies.forEach((e) => {
+    e.hp = 0;
+  });
+  state.enemies = [];
+
   const opts = [];
   while (opts.length < 3) {
     const rand =
@@ -622,23 +628,29 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-gameLoop();
+if (typeof module === "undefined") {
+  gameLoop();
 
-canvas.addEventListener("mousemove", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  state.mouseX = e.clientX - rect.left;
-  state.mouseY = e.clientY - rect.top;
-});
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    state.mouseX = e.clientX - rect.left;
+    state.mouseY = e.clientY - rect.top;
+  });
 
-document.addEventListener("keydown", (e) => {
-  if (e.key.toLowerCase() === "q") castQ();
-  if (e.key.toLowerCase() === "w") castW();
-  if (e.key.toLowerCase() === "e") castE();
-});
+  document.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "q") castQ();
+    if (e.key.toLowerCase() === "w") castW();
+    if (e.key.toLowerCase() === "e") castE();
+  });
 
-document.getElementById("levelUpBtn").addEventListener("click", () => {
-  if (!state.pendingUpgrade) {
-    state.xp = state.xpToNext;
-    levelUp();
-  }
-});
+  document.getElementById("levelUpBtn").addEventListener("click", () => {
+    if (!state.pendingUpgrade) {
+      state.xp = state.xpToNext;
+      levelUp();
+    }
+  });
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { state, levelUp };
+}
