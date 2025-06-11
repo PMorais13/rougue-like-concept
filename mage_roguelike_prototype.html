@@ -46,6 +46,7 @@
     <p><strong>XP:</strong> <span id="xp">0</span></p>
     <p><strong>Upgrades:</strong> <span id="upgrades">None</span></p>
     <p><strong>Time:</strong> <span id="timer">0:00</span></p>
+    <p><strong>Combo:</strong> <span id="comboName">None</span></p>
     <button id="levelUpBtn">Level Up</button>
   </div>
   <div id="upgradePrompt">
@@ -86,7 +87,9 @@
       spawnTimer: 60,
       spawnIncreaseTimer: 1800,
       timeFrames: 0,
-      beams: []
+      beams: [],
+      comboName: '',
+      comboTimer: 0
     };
 
     const player = {
@@ -196,6 +199,31 @@
       { type: 'stat', prop: 'baseDamage', value: 1, desc: '+1 Damage' }
     ];
 
+    const comboMap = {
+      'Fire,Ice': 'Vapor',
+      'Fire,Wind': 'Fogo Selvagem',
+      'Ice,Wind': 'Nevasca',
+      'Fire,Fire': 'Chama Azul',
+      'Ice,Ice': 'Geada Profunda',
+      'Wind,Wind': 'Tornado',
+      'Fire,Fire,Fire': 'Chama Branca',
+      'Ice,Ice,Ice': 'Era Glacial',
+      'Wind,Wind,Wind': 'Ciclone',
+      'Fire,Fire,Ice': 'Vapor Escaldante',
+      'Fire,Fire,Wind': 'Tempestade de Fogo',
+      'Ice,Ice,Fire': 'Gelo Candente',
+      'Ice,Ice,Wind': 'Nevasca Congelante',
+      'Wind,Wind,Fire': 'Furacão Flamejante',
+      'Wind,Wind,Ice': 'Tempestade Gélida',
+      'Fire,Ice,Wind': 'Tempestade Elemental'
+    };
+
+    function getComboName(elems) {
+      if (!elems || elems.length < 2) return null;
+      const key = elems.slice(0, 3).sort().join(',');
+      return comboMap[key] || null;
+    }
+
     function levelUp() {
       state.xp -= state.xpToNext;
       state.level++;
@@ -253,6 +281,8 @@
         `E(${state.upgrades.E.join(",")}) ` +
         `Stats(${state.generalUpgrades.join(",")})`;
       document.getElementById("timer").textContent = formatTime(state.timeFrames);
+      document.getElementById("comboName").textContent =
+        state.comboTimer > 0 ? state.comboName : 'None';
     }
 
     function drawGame() {
@@ -310,6 +340,11 @@
 
     function applyElementEffects(enemy, elements) {
       if (!elements) return;
+      const combo = getComboName(elements);
+      if (combo) {
+        state.comboName = combo;
+        state.comboTimer = 120;
+      }
       if (elements.includes('Fire')) enemy.burn = 60;
       if (elements.includes('Ice')) enemy.slow = 60;
       if (elements.includes('Wind')) enemy.knockback = 20;
@@ -317,6 +352,7 @@
 
     function updateGame() {
       state.timeFrames++;
+      if (state.comboTimer > 0) state.comboTimer--;
       if (++state.autoFireTimer % state.autoFireDelay === 0) shootBasic();
       if (state.spawnTimer-- <= 0) {
         spawnEnemy();
