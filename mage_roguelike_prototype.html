@@ -103,9 +103,11 @@
 
     function castQ() {
       if (state.cooldowns.Q > 0 || state.paused) return;
-      state.cooldowns.Q = 120;
+      const range = 15 + state.upgrades.Q.length * 10;
+      const baseCd = 120;
+      state.cooldowns.Q = Math.max(30, baseCd - state.upgrades.Q.length * 10);
       state.enemies = state.enemies.filter(e => {
-        if (e.y > player.y - 15 && e.y < player.y + 15 && e.x > player.x) {
+        if (e.y > player.y - range && e.y < player.y + range && e.x > player.x) {
           state.xp++;
           return false;
         }
@@ -116,12 +118,13 @@
     function castW() {
       if (state.cooldowns.W > 0 || state.paused) return;
       state.cooldowns.W = 300;
+      const extraHp = state.upgrades.W.length * 5;
       const barrier = {
         x: player.x + 60,
         y: player.y - 10,
         width: 20,
         height: 40,
-        hp: 5 + state.level * 2
+        hp: 5 + state.level * 2 + extraHp
       };
       state.barriers.push(barrier);
     }
@@ -129,7 +132,25 @@
     function castE() {
       if (state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
       state.cooldowns.E = 300;
-      state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0 });
+      const dmg = 1 + state.upgrades.E.length;
+      state.turrets.push({ x: player.x + 50, y: player.y, hp: 1, cooldown: 0, dmg });
+    }
+
+    function levelUp() {
+      state.xp -= state.xpToNext;
+      state.level++;
+      state.xpToNext = Math.floor(state.xpToNext * 1.5);
+      state.pendingUpgrade = true;
+      state.paused = true;
+      document.getElementById('upgradeElement').textContent = `lvl ${state.level}`;
+      document.getElementById('upgradePrompt').style.display = 'block';
+    }
+
+    function applyUpgrade(key) {
+      state.upgrades[key].push('+' + state.level);
+      state.pendingUpgrade = false;
+      state.paused = false;
+      document.getElementById('upgradePrompt').style.display = 'none';
     }
 
     function updateHUD() {
@@ -154,8 +175,6 @@
 
       ctx.fillStyle = "white";
       state.bullets.forEach(b => {
-        b.x += b.dx;
-        b.y += b.dy;
         ctx.beginPath();
         ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
         ctx.fill();
@@ -165,6 +184,13 @@
       state.barriers.forEach(b => {
         ctx.fillRect(b.x, b.y, b.width, b.height);
       });
+
+      ctx.fillStyle = "orange";
+      state.turrets.forEach(t => {
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+      });
     }
 
     function updateGame() {
@@ -173,7 +199,25 @@
 
       state.enemies.forEach(e => e.x -= e.speed);
 
+      // turret logic
+      state.turrets.forEach(t => {
+        if (t.cooldown > 0) {
+          t.cooldown--;
+          return;
+        }
+        const target = state.enemies[0];
+        if (target) {
+          const ang = Math.atan2(target.y - t.y, target.x - t.x);
+          const spd = 6;
+          state.bullets.push({ x: t.x, y: t.y, dx: Math.cos(ang) * spd, dy: Math.sin(ang) * spd, dmg: t.dmg });
+        }
+        t.cooldown = 60;
+      });
+
+      // move bullets and handle collisions
       state.bullets = state.bullets.filter(b => {
+        b.x += b.dx;
+        b.y += b.dy;
         for (let i = 0; i < state.enemies.length; i++) {
           const e = state.enemies[i];
           if (Math.abs(b.x - e.x) < 20 && Math.abs(b.y - e.y) < 20) {
@@ -188,7 +232,20 @@
         return b.x < canvas.width && b.y > 0 && b.y < canvas.height;
       });
 
+      // simple barrier collision
+      state.barriers = state.barriers.filter(barr => {
+        state.enemies.forEach(e => {
+          if (e.x < barr.x + barr.width && e.x + 30 > barr.x && e.y < barr.y + barr.height && e.y + 30 > barr.y) {
+            e.x = barr.x + barr.width;
+            barr.hp--;
+          }
+        });
+        return barr.hp > 0;
+      });
+
       Object.keys(state.cooldowns).forEach(k => state.cooldowns[k] = Math.max(0, state.cooldowns[k] - 1));
+
+      if (state.xp >= state.xpToNext && !state.pendingUpgrade) levelUp();
     }
 
     function gameLoop() {
