@@ -73,12 +73,15 @@ function spawnEnemy() {
   else if (r > 0.6 && state.timeFrames >= 3600) type = "tanker";
 
   const baseStats = GAME_CONSTANTS.ENEMY_BASE_STATS;
-  const mult = Math.pow(1.5, Math.floor(state.level / 5));
+  const mult = Math.pow(1.3, Math.floor(state.level / 5));
   const stats = baseStats[type];
   const groundY = canvas.height - stats.size - 30;
   const enemy = {
-    x: canvas.width + 20,
-    y: type === "voador" ? canvas.height / 2 : groundY,
+    x: canvas.width + 20 + Math.random() * 40,
+    y:
+      type === "voador"
+        ? canvas.height / 2 + (Math.random() * 120 - 60)
+        : groundY,
     speed: stats.speed,
     hp: Math.floor(stats.hp * mult),
     size: stats.size,
@@ -240,11 +243,6 @@ function levelUp() {
     state.xpToNext * GAME_CONSTANTS.XP_LEVEL_COEFF
   );
 
-  // derrotar automaticamente todos inimigos em campo
-  state.enemies.forEach((e) => {
-    e.hp = 0;
-  });
-  state.enemies = [];
 
   const opts = [];
   while (opts.length < 3) {
@@ -463,15 +461,17 @@ function updateGame() {
   state.timeFrames++;
   if (state.comboTimer > 0) state.comboTimer--;
   if (++state.autoFireTimer % state.autoFireDelay === 0) shootBasic();
-  if (state.spawnTimer-- <= 0) {
-    spawnEnemy();
-    state.spawnTimer = state.spawnInterval;
-  }
-  if (--state.spawnIncreaseTimer <= 0) {
-    state.spawnInterval = Math.floor(
-      state.spawnInterval * GAME_CONSTANTS.SPAWN_INCREASE_COEFF
-    );
-    state.spawnIncreaseTimer = GAME_CONSTANTS.SPAWN_INCREASE_TIMER;
+  if (!state.paused) {
+    if (state.spawnTimer-- <= 0) {
+      spawnEnemy();
+      state.spawnTimer = state.spawnInterval;
+    }
+    if (--state.spawnIncreaseTimer <= 0) {
+      state.spawnInterval = Math.floor(
+        state.spawnInterval * GAME_CONSTANTS.SPAWN_INCREASE_COEFF
+      );
+      state.spawnIncreaseTimer = GAME_CONSTANTS.SPAWN_INCREASE_TIMER;
+    }
   }
   if (state.paused) return;
 
