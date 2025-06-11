@@ -24,12 +24,16 @@ experiência e sobe de nível, você pode melhorar atributos gerais ou adicionar
 Quando um feitiço possui um elemento, o efeito é aplicado toda vez que atinge um
 inimigo:
 
-- **Fire**: aplica queimadura por 60 quadros. A cada 20 quadros o inimigo sofre
-  1 de dano extra.
-- **Ice**: deixa o inimigo lento por 60 quadros, reduzindo sua velocidade pela
-  metade.
-- **Wind**: empurra o inimigo 20 pixels para a direita (para longe do jogador).
-  Se o inimigo estiver rápido, o recuo pode parecer pequeno.
+- **Fire**: causa dano ao longo do tempo. Com um upgrade, provoca `0,5` de dano
+  por segundo durante `3` segundos. Com dois upgrades, o dano passa para `1` por
+  segundo durante `3` segundos. Com três upgrades, o inimigo sofre `2` de dano
+  por segundo por `5` segundos. O efeito não acumula e os oponentes queimando
+  piscam na tela.
+- **Ice**: reduz a velocidade do alvo. Um upgrade diminui em `25%` por `1,5`
+  segundo; dois upgrades diminuem em `50%` por `2` segundos; três upgrades
+  imobilizam o alvo por `2` segundos.
+- **Wind**: empurra o inimigo para trás. Com um upgrade o recuo é de `20` pixels;
+  com dois, `40` pixels; com três, `80` pixels.
 
 ## Feitiços
 
@@ -55,10 +59,9 @@ inimigo:
 
 ## Observação sobre o elemento Vento
 
-O código empurra o inimigo 20 pixels para a direita sempre que o elemento
-Vento é aplicado. Como os inimigos se movem constantemente para a esquerda,
-esse recuo pode ser discreto. Para um efeito mais visível, seria preciso
-ajustar esse valor ou aplicar a força de forma repetida.
+O recuo provocado por **Vento** varia conforme a quantidade de upgrades
+adquiridos. Inimigos podem ser arremessados para longe (20, 40 ou 80 pixels),
+o que torna o efeito perceptível mesmo contra adversários rápidos.
 
 ## Combinações Elementais
 
