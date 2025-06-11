@@ -185,9 +185,10 @@
       };
       const mult = Math.pow(1.5, Math.floor(state.level / 5));
       const stats = baseStats[type];
-      state.enemies.push({
+      const groundY = canvas.height - stats.size - 30;
+      const enemy = {
         x: canvas.width + 20,
-        y: type === 'voador' ? canvas.height / 2 : canvas.height - stats.size - 30,
+        y: type === 'voador' ? canvas.height / 2 : groundY,
         speed: stats.speed,
         hp: Math.floor(stats.hp * mult),
         size: stats.size,
@@ -198,7 +199,13 @@
         knockback: 0,
         type,
         flying: type === 'voador'
-      });
+      };
+      if (type === 'miniom') {
+        enemy.baseY = groundY;
+        enemy.vy = 0;
+        enemy.jumpCooldown = Math.floor(Math.random() * 180) + 120; // 2-5 seconds
+      }
+      state.enemies.push(enemy);
     }
 
     function shootBasic() {
@@ -542,6 +549,22 @@
           e.x += e.knockback;
           e.knockback *= 0.6;
           if (e.knockback < 1) e.knockback = 0;
+        }
+
+        if (e.type === 'miniom') {
+          if (e.jumpCooldown > 0) {
+            e.jumpCooldown--;
+          } else if (e.vy === 0) {
+            e.vy = -8; // jump impulse
+            e.jumpCooldown = Math.floor(Math.random() * 180) + 120;
+          }
+          e.y += e.vy;
+          if (e.y < e.baseY) {
+            e.vy += 0.5; // gravity
+          } else {
+            e.y = e.baseY;
+            e.vy = 0;
+          }
         }
 
         const spd = e.slow > 0 ? e.speed * e.slowFactor : e.speed;
