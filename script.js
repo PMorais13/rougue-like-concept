@@ -32,8 +32,6 @@ const troncoImg = new Image();
 troncoImg.src = "tronco.png";
 
 const shootSound = new Audio("shoot.wav");
-const bgMusic = new Audio("background.mp3");
-bgMusic.loop = true;
 
 const state = {
   level: 1,
@@ -82,11 +80,6 @@ function setPaused(p) {
   if (overlay) overlay.style.display = p ? "block" : "none";
   if (menuOverlay && p) menuOverlay.style.display = "block";
   if (menuOverlay && !p) menuOverlay.style.display = "none";
-  if (p) {
-    bgMusic.pause();
-  } else {
-    bgMusic.play().catch(() => {});
-  }
 }
 
 const player = {
