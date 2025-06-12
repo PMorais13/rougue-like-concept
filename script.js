@@ -3,6 +3,41 @@ const ctx = canvas.getContext("2d");
 const overlay = document.getElementById("overlay");
 const menuOverlay = document.getElementById("menuOverlay");
 const resumeBtn = document.getElementById("resumeBtn");
+// cache frequently accessed HUD elements for performance
+const hudEls = {
+  level: document.getElementById("level"),
+  xpBar: document.getElementById("xpBar"),
+  qUpgrades: document.getElementById("qUpgrades"),
+  wUpgrades: document.getElementById("wUpgrades"),
+  eUpgrades: document.getElementById("eUpgrades"),
+  qCd: document.getElementById("qCd"),
+  wCd: document.getElementById("wCd"),
+  eCd: document.getElementById("eCd"),
+  timer: document.getElementById("timer"),
+  comboName: document.getElementById("comboName"),
+  lives: document.getElementById("lives"),
+  abilities: {
+    Q: document.getElementById("qAbility"),
+    W: document.getElementById("wAbility"),
+    E: document.getElementById("eAbility"),
+  },
+};
+
+// store last rendered values to avoid unnecessary DOM writes
+const hudCache = {
+  level: null,
+  xpPct: null,
+  qUpgrades: null,
+  wUpgrades: null,
+  eUpgrades: null,
+  qCd: null,
+  wCd: null,
+  eCd: null,
+  timer: null,
+  comboName: null,
+  lives: null,
+  skillsUnlocked: { Q: null, W: null, E: null },
+};
 const isMobile =
   typeof navigator !== "undefined" &&
   ("ontouchstart" in window || navigator.maxTouchPoints > 0);
@@ -449,42 +484,74 @@ function formatElements(elems) {
 }
 
 function updateHUD() {
-  document.getElementById("level").textContent = state.level;
+  if (hudEls.level && hudCache.level !== state.level) {
+    hudEls.level.textContent = state.level;
+    hudCache.level = state.level;
+  }
   const pct = Math.min(1, state.xp / state.xpToNext) * 100;
-  document.getElementById("xpBar").style.width = pct + "%";
-  document.getElementById("qUpgrades").textContent = formatElements(
-    state.upgrades.Q
-  );
-  document.getElementById("wUpgrades").textContent = formatElements(
-    state.upgrades.W
-  );
-  document.getElementById("eUpgrades").textContent = formatElements(
-    state.upgrades.E
-  );
-  const qCd = document.getElementById("qCd");
-  const wCd = document.getElementById("wCd");
-  const eCd = document.getElementById("eCd");
-  if (qCd)
-    qCd.textContent =
-      state.cooldowns.Q > 0 ? Math.ceil(state.cooldowns.Q / 60) : "";
-  if (wCd)
-    wCd.textContent =
-      state.cooldowns.W > 0 ? Math.ceil(state.cooldowns.W / 60) : "";
-  if (eCd)
-    eCd.textContent =
-      state.cooldowns.E > 0 ? Math.ceil(state.cooldowns.E / 60) : "";
+  if (hudEls.xpBar && hudCache.xpPct !== pct) {
+    hudEls.xpBar.style.width = pct + "%";
+    hudCache.xpPct = pct;
+  }
+
+  const qUp = formatElements(state.upgrades.Q);
+  if (hudEls.qUpgrades && hudCache.qUpgrades !== qUp) {
+    hudEls.qUpgrades.textContent = qUp;
+    hudCache.qUpgrades = qUp;
+  }
+  const wUp = formatElements(state.upgrades.W);
+  if (hudEls.wUpgrades && hudCache.wUpgrades !== wUp) {
+    hudEls.wUpgrades.textContent = wUp;
+    hudCache.wUpgrades = wUp;
+  }
+  const eUp = formatElements(state.upgrades.E);
+  if (hudEls.eUpgrades && hudCache.eUpgrades !== eUp) {
+    hudEls.eUpgrades.textContent = eUp;
+    hudCache.eUpgrades = eUp;
+  }
+
+  const qCdText = state.cooldowns.Q > 0 ? Math.ceil(state.cooldowns.Q / 60) : "";
+  if (hudEls.qCd && hudCache.qCd !== qCdText) {
+    hudEls.qCd.textContent = qCdText;
+    hudCache.qCd = qCdText;
+  }
+  const wCdText = state.cooldowns.W > 0 ? Math.ceil(state.cooldowns.W / 60) : "";
+  if (hudEls.wCd && hudCache.wCd !== wCdText) {
+    hudEls.wCd.textContent = wCdText;
+    hudCache.wCd = wCdText;
+  }
+  const eCdText = state.cooldowns.E > 0 ? Math.ceil(state.cooldowns.E / 60) : "";
+  if (hudEls.eCd && hudCache.eCd !== eCdText) {
+    hudEls.eCd.textContent = eCdText;
+    hudCache.eCd = eCdText;
+  }
+
   ["Q", "W", "E"].forEach((k) => {
-    const ab = document.getElementById(k.toLowerCase() + "Ability");
-    if (ab) {
+    const ab = hudEls.abilities[k];
+    if (!ab) return;
+    if (hudCache.skillsUnlocked[k] !== state.skillsUnlocked[k]) {
+      hudCache.skillsUnlocked[k] = state.skillsUnlocked[k];
       if (state.skillsUnlocked[k]) ab.classList.remove("locked");
       else ab.classList.add("locked");
     }
   });
-  document.getElementById("timer").textContent = formatTime(state.timeFrames);
-  document.getElementById("comboName").textContent =
-    state.comboTimer > 0 ? state.comboName : "None";
-  const livesEl = document.getElementById("lives");
-  if (livesEl) livesEl.textContent = state.lives;
+
+  const timerText = formatTime(state.timeFrames);
+  if (hudEls.timer && hudCache.timer !== timerText) {
+    hudEls.timer.textContent = timerText;
+    hudCache.timer = timerText;
+  }
+
+  const comboText = state.comboTimer > 0 ? state.comboName : "None";
+  if (hudEls.comboName && hudCache.comboName !== comboText) {
+    hudEls.comboName.textContent = comboText;
+    hudCache.comboName = comboText;
+  }
+
+  if (hudEls.lives && hudCache.lives !== state.lives) {
+    hudEls.lives.textContent = state.lives;
+    hudCache.lives = state.lives;
+  }
 }
 
 function drawGame() {
