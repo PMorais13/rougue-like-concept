@@ -3,6 +3,9 @@ const ctx = canvas.getContext("2d");
 const overlay = document.getElementById("overlay");
 const menuOverlay = document.getElementById("menuOverlay");
 const resumeBtn = document.getElementById("resumeBtn");
+const isMobile =
+  typeof navigator !== "undefined" &&
+  ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -772,6 +775,32 @@ if (typeof module === "undefined") {
     state.mouseX = e.clientX - rect.left;
     state.mouseY = e.clientY - rect.top;
   });
+
+  if (isMobile) {
+    const mobileControls = document.getElementById("mobileControls");
+    if (mobileControls) mobileControls.style.display = "block";
+
+    const handleTouch = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const t = e.touches[0];
+      if (t) {
+        state.mouseX = t.clientX - rect.left;
+        state.mouseY = t.clientY - rect.top;
+      }
+    };
+    const pad = document.getElementById("shootPad");
+    if (pad) {
+      pad.addEventListener("touchstart", handleTouch);
+      pad.addEventListener("touchmove", handleTouch);
+    }
+
+    const qBtn = document.getElementById("btnQ");
+    const wBtn = document.getElementById("btnW");
+    const eBtn = document.getElementById("btnE");
+    if (qBtn) qBtn.addEventListener("touchstart", (ev) => { ev.preventDefault(); castQ(); });
+    if (wBtn) wBtn.addEventListener("touchstart", (ev) => { ev.preventDefault(); castW(); });
+    if (eBtn) eBtn.addEventListener("touchstart", (ev) => { ev.preventDefault(); castE(); });
+  }
 
   document.addEventListener("keydown", (e) => {
     const k = e.key.toLowerCase();
