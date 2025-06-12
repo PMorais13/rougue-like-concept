@@ -27,6 +27,12 @@ const GAME_CONSTANTS = {
     voador: { hp: 1, speed: 2.5, size: 50 },
     troll: { hp: 30, speed: 0.7, size: 120 },
   },
+  ENEMY_SPAWN_WEIGHTS: {
+    miniom: 60,
+    tanker: 25,
+    voador: 10,
+    troll: 5,
+  },
 };
 
 // upgrade definitions
