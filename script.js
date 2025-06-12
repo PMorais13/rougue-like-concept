@@ -1,5 +1,8 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+const overlay = document.getElementById("overlay");
+const menuOverlay = document.getElementById("menuOverlay");
+const resumeBtn = document.getElementById("resumeBtn");
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -28,6 +31,10 @@ trollImg.src = "troll.png";
 const troncoImg = new Image();
 troncoImg.src = "tronco.png";
 
+const shootSound = new Audio("shoot.wav");
+const bgMusic = new Audio("background.mp3");
+bgMusic.loop = true;
+
 const state = {
   level: 1,
   xp: 0,
@@ -55,7 +62,7 @@ const state = {
   nextUpgrade: null,
   upgradeOptions: [],
   upgradeType: null,
-  paused: false,
+  paused: true,
   mouseX: 0,
   mouseY: 0,
   spawnInterval: GAME_CONSTANTS.SPAWN_INTERVAL,
@@ -69,6 +76,18 @@ const state = {
   comboTimer: 0,
   lives: 4,
 };
+
+function setPaused(p) {
+  state.paused = p;
+  if (overlay) overlay.style.display = p ? "block" : "none";
+  if (menuOverlay && p) menuOverlay.style.display = "block";
+  if (menuOverlay && !p) menuOverlay.style.display = "none";
+  if (p) {
+    bgMusic.pause();
+  } else {
+    bgMusic.play().catch(() => {});
+  }
+}
 
 const player = {
   x: 100,
@@ -156,6 +175,8 @@ function shootBasic() {
     elements: [],
     aoe: state.bulletAOE,
   });
+  shootSound.currentTime = 0;
+  shootSound.play().catch(() => {});
 }
 
 function castQ() {
@@ -298,8 +319,9 @@ function levelUp() {
   }
   state.upgradeOptions = opts;
   state.pendingUpgrade = true;
-  state.paused = true;
   state.upgradeType = "general";
+  setPaused(true);
+  if (menuOverlay) menuOverlay.style.display = "none";
   showGeneralUpgrades();
 }
 
@@ -311,7 +333,7 @@ function applyElementUpgrade(key) {
     state.upgrades[key].push(up.element);
   }
   state.pendingUpgrade = false;
-  state.paused = false;
+  setPaused(false);
   state.nextUpgrade = null;
   state.upgradeType = null;
   document.getElementById("upgradePrompt").style.display = "none";
@@ -338,13 +360,14 @@ function chooseUpgrade(idx) {
   state.upgradeType = null;
   document.getElementById("generalUpgradePrompt").style.display = "none";
   state.pendingUpgrade = false;
-  state.paused = false;
+  setPaused(false);
   if (state.level % 5 === 0) {
     const el =
       elementOptions[Math.floor(Math.random() * elementOptions.length)];
     state.nextUpgrade = { type: "element", element: el, desc: el };
     state.pendingUpgrade = true;
-    state.paused = true;
+    setPaused(true);
+    if (menuOverlay) menuOverlay.style.display = "none";
     document.getElementById("upgradeElement").textContent = el;
     document.getElementById("upgradePrompt").style.display = "block";
     state.upgradeType = "element";
@@ -526,7 +549,8 @@ function updateGame() {
     state.goblinFrame = (state.goblinFrame + 1) % goblinFrames.length;
   }
   if (state.comboTimer > 0) state.comboTimer--;
-  if (++state.autoFireTimer % state.autoFireDelay === 0) shootBasic();
+  if (!state.paused && ++state.autoFireTimer % state.autoFireDelay === 0)
+    shootBasic();
   if (!state.paused) {
     if (state.spawnTimer-- <= 0) {
       spawnEnemy();
@@ -720,6 +744,7 @@ function gameLoop() {
 
 if (typeof module === "undefined") {
   gameLoop();
+  setPaused(true);
 
   canvas.addEventListener("mousemove", (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -728,10 +753,22 @@ if (typeof module === "undefined") {
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key.toLowerCase() === "q") castQ();
-    if (e.key.toLowerCase() === "w") castW();
-    if (e.key.toLowerCase() === "e") castE();
+    const k = e.key.toLowerCase();
+    if (k === "p") {
+      if (!state.pendingUpgrade) setPaused(!state.paused);
+      return;
+    }
+    if (state.paused) return;
+    if (k === "q") castQ();
+    if (k === "w") castW();
+    if (k === "e") castE();
   });
+
+  if (resumeBtn) {
+    resumeBtn.addEventListener("click", () => {
+      if (!state.pendingUpgrade) setPaused(false);
+    });
+  }
 
   const levelBtn = document.getElementById("levelUpBtn");
   if (levelBtn) {
