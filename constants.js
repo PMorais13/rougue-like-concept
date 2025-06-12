@@ -4,7 +4,7 @@ const GAME_CONSTANTS = {
   SPAWN_INCREASE_TIMER: 30 * 60, // equivalente em quadros a 30 segundos
   // coeficiente aplicado ao spawnInterval. Abaixo de 1 reduz o intervalo
   // tornando os inimigos mais frequentes.
-  SPAWN_INCREASE_COEFF: 0.75, // ex.: 2s -> 1.5s
+  SPAWN_INCREASE_COEFF: 0.7, // ex.: 2s -> 1.5s
   PLAYER_SPEED: 3, // velocidade de movimento do jogador
   PLAYER_MAX_HP: 10, // vida base do jogador (ainda não usado)
   BULLET_SPEED: 5, // velocidade dos projéteis básicos do jogador
@@ -20,8 +20,8 @@ const GAME_CONSTANTS = {
   TANKER_DASH_DURATION: 70, // duração da investida do tanker
   DASH_SPEED_MULTIPLIER: 3, // multiplicador de velocidade na investida
   TRUNK_BASE_Y: 150, // altura do topo do tronco em relação à base da tela
-  ORC_ANIMATION_SPEED: 10, // quadros entre quadros da animação do orc
-  GOBLIN_ANIMATION_SPEED: 10, // quadros entre quadros da animação do goblin
+  ORC_ANIMATION_SPEED: 8, // quadros entre quadros da animação do orc
+  GOBLIN_ANIMATION_SPEED: 8, // quadros entre quadros da animação do goblin
   XP_PER_ENEMY: 3, // XP ganho por inimigo derrotado
   XP_LEVEL_COEFF: 1.2, // multiplicador do XP necessário por nível
   ENEMY_HP_LEVEL_COEFF: 1.05, // multiplicador de HP por nível
