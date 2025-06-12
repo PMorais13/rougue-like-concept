@@ -220,7 +220,7 @@ function castE() {
 function spawnTrunk(x) {
   const barrier = {
     x,
-    y: player.y - 10,
+    y: canvas.height - GAME_CONSTANTS.TRUNK_BASE_Y,
     width: 120,
     height: 120,
     hp: 20,

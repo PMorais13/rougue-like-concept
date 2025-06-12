@@ -19,6 +19,7 @@ const GAME_CONSTANTS = {
   TANKER_DASH_COOLDOWN_VAR: 240, // intervalo aleatório adicional
   TANKER_DASH_DURATION: 70, // duração da investida do tanker
   DASH_SPEED_MULTIPLIER: 3, // multiplicador de velocidade na investida
+  TRUNK_BASE_Y: 150, // altura do topo do tronco em relação à base da tela
   XP_PER_ENEMY: 3, // XP ganho por inimigo derrotado
   XP_LEVEL_COEFF: 1.2, // multiplicador do XP necessário por nível
   ENEMY_BASE_STATS: {
