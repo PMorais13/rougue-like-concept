@@ -66,6 +66,7 @@ const state = {
   paused: true,
   mouseX: 0,
   mouseY: 0,
+  skillsUnlocked: { Q: false, W: false, E: false },
   spawnInterval: GAME_CONSTANTS.SPAWN_INTERVAL,
   spawnTimer: GAME_CONSTANTS.SPAWN_INTERVAL,
   spawnIncreaseTimer: GAME_CONSTANTS.SPAWN_INCREASE_TIMER,
@@ -184,7 +185,7 @@ function shootBasic() {
 }
 
 function castQ() {
-  if (state.cooldowns.Q > 0 || state.paused) return;
+  if (!state.skillsUnlocked.Q || state.cooldowns.Q > 0 || state.paused) return;
   const range = 15 + state.upgrades.Q.length * 10;
   state.cooldowns.Q = state.qCooldown;
   state.enemies.forEach((e) => {
@@ -222,12 +223,13 @@ function castQ() {
 }
 
 function castW() {
-  if (state.cooldowns.W > 0 || state.paused) return;
+  if (!state.skillsUnlocked.W || state.cooldowns.W > 0 || state.paused) return;
   state.cooldowns.W = 300;
   const extraHp = state.upgrades.W.length * 5;
+  const barrierBottom = player.y + player.radius;
   const barrier = {
     x: player.x + 60,
-    y: player.y - 10,
+    y: barrierBottom - state.barrierHeight,
     width: 20,
     height: state.barrierHeight,
     hp: 5 + state.level * 2 + extraHp + state.wBonusHp,
@@ -238,7 +240,7 @@ function castW() {
 }
 
 function castE() {
-  if (state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
+  if (!state.skillsUnlocked.E || state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
   state.cooldowns.E = 300;
   const dmg = 1 + state.upgrades.E.length + state.eDamageBonus;
   state.turrets.push({
@@ -313,6 +315,12 @@ function levelUp() {
   state.xp -= state.xpToNext;
   state.level++;
   state.xpToNext = Math.floor(state.xpToNext * GAME_CONSTANTS.XP_LEVEL_COEFF);
+
+  const nextSkill = ["Q", "W", "E"].find((s) => !state.skillsUnlocked[s]);
+  if (nextSkill) {
+    state.skillsUnlocked[nextSkill] = true;
+    return;
+  }
 
   const opts = [];
   while (opts.length < 3) {
@@ -434,6 +442,13 @@ function updateHUD() {
   if (qCd) qCd.textContent = state.cooldowns.Q > 0 ? Math.ceil(state.cooldowns.Q / 60) : "";
   if (wCd) wCd.textContent = state.cooldowns.W > 0 ? Math.ceil(state.cooldowns.W / 60) : "";
   if (eCd) eCd.textContent = state.cooldowns.E > 0 ? Math.ceil(state.cooldowns.E / 60) : "";
+  ["Q", "W", "E"].forEach((k) => {
+    const ab = document.getElementById(k.toLowerCase() + "Ability");
+    if (ab) {
+      if (state.skillsUnlocked[k]) ab.classList.remove("locked");
+      else ab.classList.add("locked");
+    }
+  });
   document.getElementById("timer").textContent = formatTime(state.timeFrames);
   document.getElementById("comboName").textContent =
     state.comboTimer > 0 ? state.comboName : "None";
