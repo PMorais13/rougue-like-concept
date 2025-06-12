@@ -21,6 +21,7 @@ const GAME_CONSTANTS = {
   DASH_SPEED_MULTIPLIER: 3, // multiplicador de velocidade na investida
   TRUNK_BASE_Y: 150, // altura do topo do tronco em relação à base da tela
   ORC_ANIMATION_SPEED: 10, // quadros entre quadros da animação do orc
+  GOBLIN_ANIMATION_SPEED: 10, // quadros entre quadros da animação do goblin
   XP_PER_ENEMY: 3, // XP ganho por inimigo derrotado
   XP_LEVEL_COEFF: 1.2, // multiplicador do XP necessário por nível
   ENEMY_BASE_STATS: {
