@@ -7,6 +7,7 @@ beforeEach(() => {
   global.window = dom.window;
   global.document = dom.window.document;
   global.Image = dom.window.Image;
+  global.Audio = function () { return {}; };
   global.GAME_CONSTANTS = constants.GAME_CONSTANTS;
   global.UPGRADE_FAST_SHOT = constants.UPGRADE_FAST_SHOT;
   global.UPGRADE_BASE_DAMAGE = constants.UPGRADE_BASE_DAMAGE;

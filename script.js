@@ -59,6 +59,7 @@ const state = {
   turretFireDelay: GAME_CONSTANTS.TURRET_FIRE_COOLDOWN,
   barrierHeight: 40,
   bulletAOE: 0,
+  crosshair: null,
   pendingUpgrade: null,
   nextUpgrade: null,
   upgradeOptions: [],
@@ -250,6 +251,12 @@ function castE() {
     cooldown: 0,
     dmg,
   });
+  state.crosshair = {
+    x: player.x + 150,
+    y: player.y - 60,
+    radius: 8,
+    dragging: false,
+  };
 }
 
 function spawnTrunk(x) {
@@ -539,6 +546,13 @@ function drawGame() {
     ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
     ctx.fill();
   });
+
+  if (state.crosshair) {
+    ctx.fillStyle = "red";
+    ctx.beginPath();
+    ctx.arc(state.crosshair.x, state.crosshair.y, state.crosshair.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 function applyElementEffects(enemy, elements) {
@@ -678,7 +692,7 @@ function updateGame() {
       t.cooldown--;
       return;
     }
-    const target = state.enemies[0];
+    const target = state.crosshair || state.enemies[0];
     if (target) {
       const ang = Math.atan2(target.y - t.y, target.x - t.x);
       const spd = GAME_CONSTANTS.TURRET_BULLET_SPEED;
@@ -789,6 +803,27 @@ if (typeof module === "undefined") {
     const rect = canvas.getBoundingClientRect();
     state.mouseX = e.clientX - rect.left;
     state.mouseY = e.clientY - rect.top;
+    if (state.crosshair && state.crosshair.dragging) {
+      state.crosshair.x = state.mouseX;
+      state.crosshair.y = state.mouseY;
+    }
+  });
+
+  canvas.addEventListener("mousedown", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    if (
+      state.crosshair &&
+      Math.hypot(mx - state.crosshair.x, my - state.crosshair.y) <=
+        state.crosshair.radius * 2
+    ) {
+      state.crosshair.dragging = true;
+    }
+  });
+
+  canvas.addEventListener("mouseup", () => {
+    if (state.crosshair) state.crosshair.dragging = false;
   });
 
   if (isMobile) {
@@ -801,12 +836,31 @@ if (typeof module === "undefined") {
       if (t) {
         state.mouseX = t.clientX - rect.left;
         state.mouseY = t.clientY - rect.top;
+        if (state.crosshair && state.crosshair.dragging) {
+          state.crosshair.x = state.mouseX;
+          state.crosshair.y = state.mouseY;
+        }
       }
     };
     const pad = document.getElementById("shootPad");
     if (pad) {
-      pad.addEventListener("touchstart", handleTouch);
+      pad.addEventListener("touchstart", (e) => {
+        handleTouch(e);
+        if (
+          state.crosshair &&
+          Math.hypot(
+            state.mouseX - state.crosshair.x,
+            state.mouseY - state.crosshair.y
+          ) <=
+            state.crosshair.radius * 2
+        ) {
+          state.crosshair.dragging = true;
+        }
+      });
       pad.addEventListener("touchmove", handleTouch);
+      pad.addEventListener("touchend", () => {
+        if (state.crosshair) state.crosshair.dragging = false;
+      });
     }
 
     const qBtn = document.getElementById("btnQ");
