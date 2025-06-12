@@ -111,7 +111,14 @@ function spawnEnemy(forcedType) {
   }
 
   const baseStats = GAME_CONSTANTS.ENEMY_BASE_STATS;
-  const mult = Math.pow(1.2, Math.floor(state.level / 5));
+  const hpMult = Math.pow(
+    GAME_CONSTANTS.ENEMY_HP_LEVEL_COEFF,
+    state.level - 1
+  );
+  const speedMult = Math.pow(
+    GAME_CONSTANTS.ENEMY_SPEED_LEVEL_COEFF,
+    state.level - 1
+  );
   const stats = baseStats[type];
   const groundY = canvas.height - stats.size - 30;
   const enemy = {
@@ -120,15 +127,16 @@ function spawnEnemy(forcedType) {
       type === "voador"
         ? canvas.height / 2 + (Math.random() * 120 - 60)
         : groundY,
-    speed: stats.speed,
-    hp: Math.floor(stats.hp * mult),
-    maxHp: Math.floor(stats.hp * mult),
+    speed: stats.speed * speedMult,
+    hp: Math.floor(stats.hp * hpMult),
+    maxHp: Math.floor(stats.hp * hpMult),
     size: stats.size,
     burn: 0,
     burnPct: 0,
     slow: 0,
     slowFactor: 1,
     knockback: 0,
+    flash: 0,
     type,
     flying: type === "voador",
   };
@@ -187,6 +195,7 @@ function castQ() {
       // usamos uma cópia para evitar mudar o array de elementos da magia
       applyElementEffects(e, state.spellElements.Q.slice());
       e.hp -= state.baseDamage + state.qDamageBonus;
+      e.flash = 5;
     }
   });
 
@@ -416,6 +425,12 @@ function updateHUD() {
   document.getElementById("eUpgrades").textContent = formatElements(
     state.upgrades.E
   );
+  const qCd = document.getElementById("qCd");
+  const wCd = document.getElementById("wCd");
+  const eCd = document.getElementById("eCd");
+  if (qCd) qCd.textContent = state.cooldowns.Q > 0 ? Math.ceil(state.cooldowns.Q / 60) : "";
+  if (wCd) wCd.textContent = state.cooldowns.W > 0 ? Math.ceil(state.cooldowns.W / 60) : "";
+  if (eCd) eCd.textContent = state.cooldowns.E > 0 ? Math.ceil(state.cooldowns.E / 60) : "";
   document.getElementById("timer").textContent = formatTime(state.timeFrames);
   document.getElementById("comboName").textContent =
     state.comboTimer > 0 ? state.comboName : "None";
@@ -464,6 +479,16 @@ function drawGame() {
       else ctx.fillStyle = "green";
       ctx.fillRect(e.x, e.y, e.size, e.size);
     }
+    if (e.flash && e.flash > 0 && state.timeFrames % 2 === 0) {
+      ctx.fillStyle = "rgba(255,0,0,0.4)";
+      ctx.fillRect(e.x, e.y, e.size, e.size);
+      e.flash--;
+    }
+    const hpPct = Math.max(0, e.hp) / e.maxHp;
+    ctx.fillStyle = "red";
+    ctx.fillRect(e.x, e.y - 6, e.size, 4);
+    ctx.fillStyle = "lime";
+    ctx.fillRect(e.x, e.y - 6, e.size * hpPct, 4);
     if (e.burn > 0 && state.timeFrames % 20 < 10) {
       ctx.fillStyle = "rgba(255,100,0,0.5)";
       ctx.fillRect(e.x, e.y, e.size, e.size);
@@ -667,6 +692,7 @@ function updateGame() {
       ) {
         applyElementEffects(e, b.elements);
         e.hp -= b.dmg;
+        e.flash = 5;
         if (b.aoe > 0) {
           state.enemies.forEach((o) => {
             if (o === e) return;
@@ -675,6 +701,7 @@ function updateGame() {
             if (dist < b.aoe) {
               applyElementEffects(o, b.elements);
               o.hp -= b.dmg;
+              o.flash = 5;
             }
           });
         }
@@ -712,9 +739,10 @@ function updateGame() {
           e.y < barr.y + barr.height &&
           e.y + e.size > barr.y
         ) {
-          applyElementEffects(e, barr.elements);
-          e.x = barr.x + barr.width;
-          barr.hp--;
+        applyElementEffects(e, barr.elements);
+        e.x = barr.x + barr.width;
+        e.flash = 5;
+        barr.hp--;
         }
       });
     }

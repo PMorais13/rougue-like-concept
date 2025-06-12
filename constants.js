@@ -24,6 +24,8 @@ const GAME_CONSTANTS = {
   GOBLIN_ANIMATION_SPEED: 10, // quadros entre quadros da animação do goblin
   XP_PER_ENEMY: 3, // XP ganho por inimigo derrotado
   XP_LEVEL_COEFF: 1.2, // multiplicador do XP necessário por nível
+  ENEMY_HP_LEVEL_COEFF: 1.05, // multiplicador de HP por nível
+  ENEMY_SPEED_LEVEL_COEFF: 1.01, // multiplicador de velocidade por nível
   ENEMY_BASE_STATS: {
     miniom: { hp: 2, speed: 1.8, size: 60 },
     tanker: { hp: 8, speed: 1, size: 100 },
