@@ -61,6 +61,7 @@ const state = {
   beams: [],
   comboName: "",
   comboTimer: 0,
+  lives: 4,
 };
 
 const player = {
@@ -396,6 +397,8 @@ function updateHUD() {
   document.getElementById("timer").textContent = formatTime(state.timeFrames);
   document.getElementById("comboName").textContent =
     state.comboTimer > 0 ? state.comboName : "None";
+  const livesEl = document.getElementById("lives");
+  if (livesEl) livesEl.textContent = state.lives;
 }
 
 function drawGame() {
@@ -581,14 +584,21 @@ function updateGame() {
       }
     }
     e.x -= spd;
-    if (e.hp > 0 && e.x > -e.size) {
-      remainingEnemies.push(e);
-    } else if (e.hp <= 0) {
+    if (e.hp > 0) {
+      if (e.x <= -e.size) {
+        state.lives--;
+      } else {
+        remainingEnemies.push(e);
+      }
+    } else {
       if (e.type === "troll") spawnTrunk(e.x);
       state.xp += GAME_CONSTANTS.XP_PER_ENEMY;
     }
   });
   state.enemies = remainingEnemies;
+  if (state.lives <= 0) {
+    state.paused = true;
+  }
 
   // lógica da torreta
   state.turrets.forEach((t) => {
@@ -711,12 +721,15 @@ if (typeof module === "undefined") {
     if (e.key.toLowerCase() === "e") castE();
   });
 
-  document.getElementById("levelUpBtn").addEventListener("click", () => {
-    if (!state.pendingUpgrade) {
-      state.xp = state.xpToNext;
-      levelUp();
-    }
-  });
+  const levelBtn = document.getElementById("levelUpBtn");
+  if (levelBtn) {
+    levelBtn.addEventListener("click", () => {
+      if (!state.pendingUpgrade) {
+        state.xp = state.xpToNext;
+        levelUp();
+      }
+    });
+  }
 
   const btn = document.getElementById("spawnTrollBtn");
   if (btn) {
