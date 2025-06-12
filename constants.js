@@ -28,13 +28,13 @@ const GAME_CONSTANTS = {
   ENEMY_SPEED_LEVEL_COEFF: 1.01, // multiplicador de velocidade por nível
   ENEMY_BASE_STATS: {
     miniom: { hp: 2, speed: 1.8, size: 60 },
-    tanker: { hp: 8, speed: 1, size: 100 },
+    tanker: { hp: 6, speed: 1, size: 90 },
     voador: { hp: 1, speed: 2.5, size: 50 },
     troll: { hp: 30, speed: 0.7, size: 240 },
   },
   ENEMY_SPAWN_WEIGHTS: {
-    miniom: 60,
-    tanker: 25,
+    miniom: 65,
+    tanker: 20,
     voador: 10,
     troll: 5,
   },
