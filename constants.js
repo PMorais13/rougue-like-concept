@@ -1,10 +1,10 @@
 const GAME_CONSTANTS = {
-  SPAWN_INTERVAL: 2 * 60, // 1 monstro a cada 2 segundos (em quadros)
+  SPAWN_INTERVAL: Math.round(2.5 * 60), // spawn inicial um pouco mais lento
   SPAWN_INCREASE_SECONDS: 30, // a cada 30s o intervalo de spawn diminui
   SPAWN_INCREASE_TIMER: 30 * 60, // equivalente em quadros a 30 segundos
   // coeficiente aplicado ao spawnInterval. Abaixo de 1 reduz o intervalo
   // tornando os inimigos mais frequentes.
-  SPAWN_INCREASE_COEFF: 0.7, // ex.: 2s -> 1.5s
+  SPAWN_INCREASE_COEFF: 0.8, // crescimento de dificuldade suavizado
   PLAYER_SPEED: 3, // velocidade de movimento do jogador
   PLAYER_MAX_HP: 10, // vida base do jogador (ainda não usado)
   BULLET_SPEED: 5, // velocidade dos projéteis básicos do jogador
@@ -44,7 +44,7 @@ const GAME_CONSTANTS = {
 const UPGRADE_FAST_SHOT = {
   type: "stat",
   prop: "autoFireDelay",
-  value: -30,
+  value: -10,
   desc: "Tiros mais rápidos",
 };
 
