@@ -221,8 +221,8 @@ function spawnTrunk(x) {
   const barrier = {
     x,
     y: player.y - 10,
-    width: 60,
-    height: 60,
+    width: 120,
+    height: 120,
     hp: 20,
     elements: [],
     image: troncoImg,
@@ -609,7 +609,7 @@ function updateGame() {
         // usa os elementos atuais para que melhorias afetem torretas existentes
         elements: state.spellElements.E.slice(),
         color: getBulletColor(state.spellElements.E),
-        aoe: state.bulletAOE,
+        aoe: 0,
       });
     }
     t.cooldown = state.turretFireDelay;
