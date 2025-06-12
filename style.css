@@ -74,6 +74,10 @@
       font-weight: bold;
       margin-right: 4px;
     }
+    .ability .cd {
+      margin-left: 4px;
+      color: #ffb;
+    }
 
     .overlay {
       position: absolute;
