@@ -44,15 +44,8 @@ const GAME_CONSTANTS = {
 const UPGRADE_FAST_SHOT = {
   type: "stat",
   prop: "autoFireDelay",
-  value: -10,
+  value: -15,
   desc: "Tiros mais rápidos",
-};
-
-const UPGRADE_BASE_DAMAGE = {
-  type: "stat",
-  prop: "baseDamage",
-  value: 1,
-  desc: "+ dano base",
 };
 
 const UPGRADE_Q_DAMAGE = {
@@ -108,7 +101,6 @@ if (typeof module !== "undefined") {
   module.exports = {
     GAME_CONSTANTS,
     UPGRADE_FAST_SHOT,
-    UPGRADE_BASE_DAMAGE,
     UPGRADE_Q_DAMAGE,
     UPGRADE_W_HEALTH,
     UPGRADE_E_DAMAGE,

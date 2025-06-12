@@ -302,7 +302,6 @@ function getBulletColor(elements) {
 const elementOptions = ["Fire", "Ice", "Wind"];
 const generalUpgradesPool = [
   UPGRADE_FAST_SHOT,
-  UPGRADE_BASE_DAMAGE,
   UPGRADE_Q_DAMAGE,
   UPGRADE_W_HEALTH,
   UPGRADE_E_DAMAGE,
