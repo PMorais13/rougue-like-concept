@@ -33,6 +33,8 @@ const trollImg = new Image();
 trollImg.src = "troll.png";
 const troncoImg = new Image();
 troncoImg.src = "tronco.png";
+const crosshairImg = new Image();
+crosshairImg.src = "reticule.png";
 
 const shootSound = new Audio("shoot.wav");
 
@@ -116,10 +118,7 @@ function spawnEnemy(forcedType) {
   }
 
   const baseStats = GAME_CONSTANTS.ENEMY_BASE_STATS;
-  const hpMult = Math.pow(
-    GAME_CONSTANTS.ENEMY_HP_LEVEL_COEFF,
-    state.level - 1
-  );
+  const hpMult = Math.pow(GAME_CONSTANTS.ENEMY_HP_LEVEL_COEFF, state.level - 1);
   const speedMult = Math.pow(
     GAME_CONSTANTS.ENEMY_SPEED_LEVEL_COEFF,
     state.level - 1
@@ -241,7 +240,13 @@ function castW() {
 }
 
 function castE() {
-  if (!state.skillsUnlocked.E || state.cooldowns.E > 0 || state.paused || state.turrets.length > 0) return;
+  if (
+    !state.skillsUnlocked.E ||
+    state.cooldowns.E > 0 ||
+    state.paused ||
+    state.turrets.length > 0
+  )
+    return;
   state.cooldowns.E = 300;
   const dmg = 1 + state.upgrades.E.length + state.eDamageBonus;
   state.turrets.push({
@@ -254,7 +259,7 @@ function castE() {
   state.crosshair = {
     x: player.x + 150,
     y: player.y - 60,
-    radius: 8,
+    radius: 20,
     dragging: false,
   };
 }
@@ -271,6 +276,20 @@ function spawnTrunk(x) {
     hostile: true,
   };
   state.barriers.push(barrier);
+}
+
+function clampCrosshair() {
+  if (!state.crosshair || state.turrets.length === 0) return;
+  const t = state.turrets[0];
+  const dx = state.crosshair.x - t.x;
+  const dy = state.crosshair.y - t.y;
+  const dist = Math.hypot(dx, dy);
+  const max = GAME_CONSTANTS.CROSSHAIR_MAX_DISTANCE;
+  if (dist > max) {
+    const ang = Math.atan2(dy, dx);
+    state.crosshair.x = t.x + Math.cos(ang) * max;
+    state.crosshair.y = t.y + Math.sin(ang) * max;
+  }
 }
 
 function getBulletColor(elements) {
@@ -446,9 +465,15 @@ function updateHUD() {
   const qCd = document.getElementById("qCd");
   const wCd = document.getElementById("wCd");
   const eCd = document.getElementById("eCd");
-  if (qCd) qCd.textContent = state.cooldowns.Q > 0 ? Math.ceil(state.cooldowns.Q / 60) : "";
-  if (wCd) wCd.textContent = state.cooldowns.W > 0 ? Math.ceil(state.cooldowns.W / 60) : "";
-  if (eCd) eCd.textContent = state.cooldowns.E > 0 ? Math.ceil(state.cooldowns.E / 60) : "";
+  if (qCd)
+    qCd.textContent =
+      state.cooldowns.Q > 0 ? Math.ceil(state.cooldowns.Q / 60) : "";
+  if (wCd)
+    wCd.textContent =
+      state.cooldowns.W > 0 ? Math.ceil(state.cooldowns.W / 60) : "";
+  if (eCd)
+    eCd.textContent =
+      state.cooldowns.E > 0 ? Math.ceil(state.cooldowns.E / 60) : "";
   ["Q", "W", "E"].forEach((k) => {
     const ab = document.getElementById(k.toLowerCase() + "Ability");
     if (ab) {
@@ -545,13 +570,24 @@ function drawGame() {
     ctx.beginPath();
     ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
     ctx.fill();
+    if (state.crosshair) {
+      ctx.strokeStyle = "rgba(0,255,255,0.3)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(t.x, t.y);
+      ctx.lineTo(state.crosshair.x, state.crosshair.y);
+      ctx.stroke();
+    }
   });
 
   if (state.crosshair) {
-    ctx.fillStyle = "red";
-    ctx.beginPath();
-    ctx.arc(state.crosshair.x, state.crosshair.y, state.crosshair.radius, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.drawImage(
+      crosshairImg,
+      state.crosshair.x - state.crosshair.radius,
+      state.crosshair.y - state.crosshair.radius,
+      state.crosshair.radius * 2,
+      state.crosshair.radius * 2
+    );
   }
 }
 
@@ -771,10 +807,10 @@ function updateGame() {
           e.y < barr.y + barr.height &&
           e.y + e.size > barr.y
         ) {
-        applyElementEffects(e, barr.elements);
-        e.x = barr.x + barr.width;
-        e.flash = 5;
-        barr.hp--;
+          applyElementEffects(e, barr.elements);
+          e.x = barr.x + barr.width;
+          e.flash = 5;
+          barr.hp--;
         }
       });
     }
@@ -784,6 +820,8 @@ function updateGame() {
   Object.keys(state.cooldowns).forEach(
     (k) => (state.cooldowns[k] = Math.max(0, state.cooldowns[k] - 1))
   );
+
+  clampCrosshair();
 
   if (state.xp >= state.xpToNext && !state.pendingUpgrade) levelUp();
 }
@@ -839,6 +877,7 @@ if (typeof module === "undefined") {
         if (state.crosshair && state.crosshair.dragging) {
           state.crosshair.x = state.mouseX;
           state.crosshair.y = state.mouseY;
+          clampCrosshair();
         }
       }
     };
@@ -866,9 +905,21 @@ if (typeof module === "undefined") {
     const qBtn = document.getElementById("btnQ");
     const wBtn = document.getElementById("btnW");
     const eBtn = document.getElementById("btnE");
-    if (qBtn) qBtn.addEventListener("touchstart", (ev) => { ev.preventDefault(); castQ(); });
-    if (wBtn) wBtn.addEventListener("touchstart", (ev) => { ev.preventDefault(); castW(); });
-    if (eBtn) eBtn.addEventListener("touchstart", (ev) => { ev.preventDefault(); castE(); });
+    if (qBtn)
+      qBtn.addEventListener("touchstart", (ev) => {
+        ev.preventDefault();
+        castQ();
+      });
+    if (wBtn)
+      wBtn.addEventListener("touchstart", (ev) => {
+        ev.preventDefault();
+        castW();
+      });
+    if (eBtn)
+      eBtn.addEventListener("touchstart", (ev) => {
+        ev.preventDefault();
+        castE();
+      });
   }
 
   document.addEventListener("keydown", (e) => {
