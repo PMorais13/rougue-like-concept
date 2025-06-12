@@ -74,7 +74,7 @@ const UPGRADE_Q_COOLDOWN = {
 const UPGRADE_TURRET_FASTER = {
   type: "stat",
   prop: "turretFireDelay",
-  value: -30,
+  value: -20,
   desc: "Torreta atira mais rápido",
 };
 
