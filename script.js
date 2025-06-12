@@ -71,12 +71,24 @@ const player = {
 };
 
 function spawnEnemy(forcedType) {
-  const r = Math.random();
   let type = forcedType || "miniom";
   if (!forcedType) {
-    if (r > 0.9 && state.timeFrames >= 14400) type = "troll";
-    else if (r > 0.8 && state.timeFrames >= 7200) type = "voador";
-    else if (r > 0.6 && state.timeFrames >= 3600) type = "tanker";
+    const weights = GAME_CONSTANTS.ENEMY_SPAWN_WEIGHTS;
+    const entries = [
+      ["miniom", weights.miniom, 0],
+      ["tanker", weights.tanker, 3600],
+      ["voador", weights.voador, 7200],
+      ["troll", weights.troll, 14400],
+    ].filter(([t, _w, frame]) => state.timeFrames >= frame);
+    const totalWeight = entries.reduce((sum, [, w]) => sum + w, 0);
+    let r = Math.random() * totalWeight;
+    for (const [t, w] of entries) {
+      if (r < w) {
+        type = t;
+        break;
+      }
+      r -= w;
+    }
   }
 
   const baseStats = GAME_CONSTANTS.ENEMY_BASE_STATS;
