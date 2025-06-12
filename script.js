@@ -187,6 +187,7 @@ function castW() {
     height: state.barrierHeight,
     hp: 5 + state.level * 2 + extraHp + state.wBonusHp,
     elements: state.spellElements.W.slice(),
+    hostile: false,
   };
   state.barriers.push(barrier);
 }
@@ -209,10 +210,11 @@ function spawnTrunk(x) {
     x,
     y: player.y - 10,
     width: 60,
-    height: 20,
+    height: 60,
     hp: 20,
     elements: [],
     image: troncoImg,
+    hostile: true,
   };
   state.barriers.push(barrier);
 }
@@ -633,23 +635,38 @@ function updateGame() {
         return false;
       }
     }
+    for (let j = 0; j < state.barriers.length; j++) {
+      const barr = state.barriers[j];
+      if (!barr.hostile) continue;
+      if (
+        b.x > barr.x &&
+        b.x < barr.x + barr.width &&
+        b.y > barr.y &&
+        b.y < barr.y + barr.height
+      ) {
+        barr.hp -= b.dmg;
+        return false;
+      }
+    }
     return b.x < canvas.width && b.y > 0 && b.y < canvas.height;
   });
 
   // colisão simples da barreira
   state.barriers = state.barriers.filter((barr) => {
-    state.enemies.forEach((e) => {
-      if (
-        e.x < barr.x + barr.width &&
-        e.x + e.size > barr.x &&
-        e.y < barr.y + barr.height &&
-        e.y + e.size > barr.y
-      ) {
-        applyElementEffects(e, barr.elements);
-        e.x = barr.x + barr.width;
-        barr.hp--;
-      }
-    });
+    if (!barr.hostile) {
+      state.enemies.forEach((e) => {
+        if (
+          e.x < barr.x + barr.width &&
+          e.x + e.size > barr.x &&
+          e.y < barr.y + barr.height &&
+          e.y + e.size > barr.y
+        ) {
+          applyElementEffects(e, barr.elements);
+          e.x = barr.x + barr.width;
+          barr.hp--;
+        }
+      });
+    }
     return barr.hp > 0;
   });
 
