@@ -26,7 +26,7 @@ const GAME_CONSTANTS = {
     miniom: { hp: 2, speed: 1.8, size: 60 },
     tanker: { hp: 8, speed: 1, size: 100 },
     voador: { hp: 1, speed: 2.5, size: 50 },
-    troll: { hp: 30, speed: 0.7, size: 120 },
+    troll: { hp: 30, speed: 0.7, size: 240 },
   },
   ENEMY_SPAWN_WEIGHTS: {
     miniom: 60,
