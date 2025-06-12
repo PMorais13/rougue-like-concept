@@ -11,8 +11,10 @@ window.addEventListener("resize", () => {
 });
 const mageImg = new Image();
 mageImg.src = "mage.png";
-const goblinImg = new Image();
-goblinImg.src = "goblin.png";
+const goblinFrames = [new Image(), new Image(), new Image()];
+goblinFrames[0].src = "goblin-1.png";
+goblinFrames[1].src = "goblin-2.png";
+goblinFrames[2].src = "goblin-3.png";
 const orcFrames = [new Image(), new Image(), new Image()];
 orcFrames[0].src = "orc-1.png";
 orcFrames[1].src = "orc-2.png";
@@ -61,6 +63,7 @@ const state = {
   spawnIncreaseTimer: GAME_CONSTANTS.SPAWN_INCREASE_TIMER,
   timeFrames: 0,
   orcFrame: 0,
+  goblinFrame: 0,
   beams: [],
   comboName: "",
   comboTimer: 0,
@@ -435,7 +438,7 @@ function drawGame() {
     if (e.type === "tanker") img = orcFrames[state.orcFrame];
     else if (e.type === "voador") img = batImg;
     else if (e.type === "troll") img = trollImg;
-    else img = goblinImg;
+    else img = goblinFrames[state.goblinFrame];
     if (img.complete) {
       ctx.drawImage(img, e.x, e.y, e.size, e.size);
     } else {
@@ -518,6 +521,9 @@ function updateGame() {
   state.timeFrames++;
   if (state.timeFrames % GAME_CONSTANTS.ORC_ANIMATION_SPEED === 0) {
     state.orcFrame = (state.orcFrame + 1) % orcFrames.length;
+  }
+  if (state.timeFrames % GAME_CONSTANTS.GOBLIN_ANIMATION_SPEED === 0) {
+    state.goblinFrame = (state.goblinFrame + 1) % goblinFrames.length;
   }
   if (state.comboTimer > 0) state.comboTimer--;
   if (++state.autoFireTimer % state.autoFireDelay === 0) shootBasic();
