@@ -19,6 +19,10 @@ const batImg = new Image();
 batImg.src = "bat.png";
 const magiaImg = new Image();
 magiaImg.src = "magia.png";
+const trollImg = new Image();
+trollImg.src = "troll.png";
+const troncoImg = new Image();
+troncoImg.src = "tronco.png";
 
 const state = {
   level: 1,
@@ -66,11 +70,14 @@ const player = {
   speed: GAME_CONSTANTS.PLAYER_SPEED,
 };
 
-function spawnEnemy() {
+function spawnEnemy(forcedType) {
   const r = Math.random();
-  let type = "miniom";
-  if (r > 0.8 && state.timeFrames >= 7200) type = "voador";
-  else if (r > 0.6 && state.timeFrames >= 3600) type = "tanker";
+  let type = forcedType || "miniom";
+  if (!forcedType) {
+    if (r > 0.9 && state.timeFrames >= 14400) type = "troll";
+    else if (r > 0.8 && state.timeFrames >= 7200) type = "voador";
+    else if (r > 0.6 && state.timeFrames >= 3600) type = "tanker";
+  }
 
   const baseStats = GAME_CONSTANTS.ENEMY_BASE_STATS;
   const mult = Math.pow(1.2, Math.floor(state.level / 5));
@@ -114,6 +121,7 @@ function spawnEnemy() {
     enemy.dashDuration = GAME_CONSTANTS.TANKER_DASH_DURATION;
     enemy.dashTime = 0;
   }
+  // trolls não têm habilidades especiais
   state.enemies.push(enemy);
 }
 
@@ -194,6 +202,19 @@ function castE() {
     cooldown: 0,
     dmg,
   });
+}
+
+function spawnTrunk(x) {
+  const barrier = {
+    x,
+    y: player.y - 10,
+    width: 60,
+    height: 20,
+    hp: 20,
+    elements: [],
+    image: troncoImg,
+  };
+  state.barriers.push(barrier);
 }
 
 function getBulletColor(elements) {
@@ -393,12 +414,14 @@ function drawGame() {
     let img;
     if (e.type === "tanker") img = orcImg;
     else if (e.type === "voador") img = batImg;
+    else if (e.type === "troll") img = trollImg;
     else img = goblinImg;
     if (img.complete) {
       ctx.drawImage(img, e.x, e.y, e.size, e.size);
     } else {
       if (e.type === "tanker") ctx.fillStyle = "brown";
       else if (e.type === "voador") ctx.fillStyle = "yellow";
+      else if (e.type === "troll") ctx.fillStyle = "darkgreen";
       else ctx.fillStyle = "green";
       ctx.fillRect(e.x, e.y, e.size, e.size);
     }
@@ -419,9 +442,13 @@ function drawGame() {
     }
   });
 
-  ctx.fillStyle = "blue";
   state.barriers.forEach((b) => {
-    ctx.fillRect(b.x, b.y, b.width, b.height);
+    if (b.image && b.image.complete) {
+      ctx.drawImage(b.image, b.x, b.y, b.width, b.height);
+    } else {
+      ctx.fillStyle = "blue";
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+    }
   });
 
   ctx.fillStyle = "orange";
@@ -543,6 +570,7 @@ function updateGame() {
     if (e.hp > 0 && e.x > -e.size) {
       remainingEnemies.push(e);
     } else if (e.hp <= 0) {
+      if (e.type === "troll") spawnTrunk(e.x);
       state.xp += GAME_CONSTANTS.XP_PER_ENEMY;
     }
   });
@@ -599,6 +627,7 @@ function updateGame() {
         }
         if (e.hp <= 0) {
           state.enemies.splice(i, 1);
+          if (e.type === "troll") spawnTrunk(e.x);
           state.xp += GAME_CONSTANTS.XP_PER_ENEMY;
         }
         return false;
@@ -659,6 +688,11 @@ if (typeof module === "undefined") {
       levelUp();
     }
   });
+
+  const btn = document.getElementById("spawnTrollBtn");
+  if (btn) {
+    btn.addEventListener("click", () => spawnEnemy("troll"));
+  }
 }
 
 if (typeof module !== "undefined") {
