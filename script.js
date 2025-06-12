@@ -13,8 +13,10 @@ const mageImg = new Image();
 mageImg.src = "mage.png";
 const goblinImg = new Image();
 goblinImg.src = "goblin.png";
-const orcImg = new Image();
-orcImg.src = "orc.png";
+const orcFrames = [new Image(), new Image(), new Image()];
+orcFrames[0].src = "orc-1.png";
+orcFrames[1].src = "orc-2.png";
+orcFrames[2].src = "orc-3.png";
 const batImg = new Image();
 batImg.src = "bat.png";
 const magiaImg = new Image();
@@ -58,6 +60,7 @@ const state = {
   spawnTimer: GAME_CONSTANTS.SPAWN_INTERVAL,
   spawnIncreaseTimer: GAME_CONSTANTS.SPAWN_INCREASE_TIMER,
   timeFrames: 0,
+  orcFrame: 0,
   beams: [],
   comboName: "",
   comboTimer: 0,
@@ -429,7 +432,7 @@ function drawGame() {
 
   state.enemies.forEach((e) => {
     let img;
-    if (e.type === "tanker") img = orcImg;
+    if (e.type === "tanker") img = orcFrames[state.orcFrame];
     else if (e.type === "voador") img = batImg;
     else if (e.type === "troll") img = trollImg;
     else img = goblinImg;
@@ -513,6 +516,9 @@ function applyElementEffects(enemy, elements) {
 
 function updateGame() {
   state.timeFrames++;
+  if (state.timeFrames % GAME_CONSTANTS.ORC_ANIMATION_SPEED === 0) {
+    state.orcFrame = (state.orcFrame + 1) % orcFrames.length;
+  }
   if (state.comboTimer > 0) state.comboTimer--;
   if (++state.autoFireTimer % state.autoFireDelay === 0) shootBasic();
   if (!state.paused) {
