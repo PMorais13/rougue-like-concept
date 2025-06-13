@@ -3,6 +3,7 @@ const ctx = canvas.getContext("2d");
 const overlay = document.getElementById("overlay");
 const menuOverlay = document.getElementById("menuOverlay");
 const resumeBtn = document.getElementById("resumeBtn");
+const loadingScreen = document.getElementById("loadingScreen");
 // cache frequently accessed HUD elements for performance
 const hudEls = {
   level: document.getElementById("level"),
@@ -50,28 +51,63 @@ window.addEventListener("resize", () => {
   resizeCanvas();
   player.y = canvas.height - 65;
 });
-const mageImg = new Image();
-mageImg.src = "mage.png";
-const goblinFrames = [new Image(), new Image(), new Image()];
-goblinFrames[0].src = "goblin-1.png";
-goblinFrames[1].src = "goblin-2.png";
-goblinFrames[2].src = "goblin-3.png";
-const orcFrames = [new Image(), new Image(), new Image()];
-orcFrames[0].src = "orc-1.png";
-orcFrames[1].src = "orc-2.png";
-orcFrames[2].src = "orc-3.png";
-const batImg = new Image();
-batImg.src = "bat.png";
-const magiaImg = new Image();
-magiaImg.src = "magia.png";
-const trollImg = new Image();
-trollImg.src = "troll.png";
-const troncoImg = new Image();
-troncoImg.src = "tronco.png";
-const crosshairImg = new Image();
-crosshairImg.src = "reticule.png";
 
-const shootSound = new Audio("shoot.wav");
+let mageImg = new Image();
+let goblinFrames = [new Image(), new Image(), new Image()];
+let orcFrames = [new Image(), new Image(), new Image()];
+let batImg = new Image();
+let magiaImg = new Image();
+let trollImg = new Image();
+let troncoImg = new Image();
+let crosshairImg = new Image();
+let shootSound = new Audio();
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function loadAudio(src) {
+  return new Promise((resolve, reject) => {
+    const aud = new Audio();
+    aud.addEventListener("canplaythrough", () => resolve(aud), { once: true });
+    aud.onerror = reject;
+    aud.src = src;
+  });
+}
+
+async function loadAssets() {
+  [
+    mageImg,
+    batImg,
+    magiaImg,
+    trollImg,
+    troncoImg,
+    crosshairImg,
+  ] = await Promise.all([
+    loadImage("mage.png"),
+    loadImage("bat.png"),
+    loadImage("magia.png"),
+    loadImage("troll.png"),
+    loadImage("tronco.png"),
+    loadImage("reticule.png"),
+  ]);
+  goblinFrames = await Promise.all([
+    loadImage("goblin-1.png"),
+    loadImage("goblin-2.png"),
+    loadImage("goblin-3.png"),
+  ]);
+  orcFrames = await Promise.all([
+    loadImage("orc-1.png"),
+    loadImage("orc-2.png"),
+    loadImage("orc-3.png"),
+  ]);
+  shootSound = await loadAudio("shoot.wav");
+}
 
 function loadKillCounts() {
   try {
@@ -747,7 +783,7 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-if (typeof module === "undefined") {
+function initGame() {
   gameLoop();
   setPaused(true);
 
@@ -888,4 +924,14 @@ if (typeof module === "undefined") {
 
 if (typeof module !== "undefined") {
   module.exports = { state, levelUp };
+} else {
+  (async () => {
+    if (loadingScreen) loadingScreen.style.display = "block";
+    try {
+      await loadAssets();
+    } finally {
+      if (loadingScreen) loadingScreen.style.display = "none";
+    }
+    initGame();
+  })();
 }

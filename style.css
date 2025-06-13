@@ -154,3 +154,15 @@
     #gameOverOverlay h1 {
       margin-top: 0;
     }
+
+    #loadingScreen {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #222;
+      padding: 20px;
+      border: 2px solid #555;
+      text-align: center;
+      z-index: 4;
+    }
