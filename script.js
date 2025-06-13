@@ -73,6 +73,27 @@ crosshairImg.src = "reticule.png";
 
 const shootSound = new Audio("shoot.wav");
 
+function loadKillCounts() {
+  try {
+    const data = localStorage.getItem("killCounts");
+    if (data) return JSON.parse(data);
+  } catch (e) {}
+  return { miniom: 0, tanker: 0, voador: 0, troll: 0 };
+}
+
+function saveKillCounts() {
+  try {
+    localStorage.setItem("killCounts", JSON.stringify(state.killCounts));
+  } catch (e) {}
+}
+
+function registerKill(type) {
+  if (!type) return;
+  if (!state.killCounts[type]) state.killCounts[type] = 0;
+  state.killCounts[type]++;
+  saveKillCounts();
+}
+
 const state = {
   level: 1,
   xp: 0,
@@ -104,6 +125,7 @@ const state = {
   paused: true,
   mouseX: 0,
   mouseY: 0,
+  killCounts: loadKillCounts(),
   skillsUnlocked: { Q: false, W: false, E: false },
   spawnInterval: GAME_CONSTANTS.SPAWN_INTERVAL,
   spawnTimer: GAME_CONSTANTS.SPAWN_INTERVAL,
@@ -477,6 +499,18 @@ function formatTime(frames) {
   return m + ":" + (s < 10 ? "0" + s : s);
 }
 
+function showAchievements() {
+  const cont = document.getElementById("achievementsList");
+  if (!cont) return;
+  cont.innerHTML = `
+    <p>Miniom: ${state.killCounts.miniom}</p>
+    <p>Tanker: ${state.killCounts.tanker}</p>
+    <p>Voador: ${state.killCounts.voador}</p>
+    <p>Troll: ${state.killCounts.troll}</p>
+  `;
+  document.getElementById("achievementsOverlay").style.display = "block";
+}
+
 function formatElements(elems) {
   if (!elems || elems.length === 0) return "-";
   const combo = getComboName(elems);
@@ -693,14 +727,16 @@ function applyElementEffects(enemy, elements) {
 }
 
 function updateGame() {
-  state.timeFrames++;
-  if (state.timeFrames % GAME_CONSTANTS.ORC_ANIMATION_SPEED === 0) {
-    state.orcFrame = (state.orcFrame + 1) % orcFrames.length;
+  if (!state.paused) {
+    state.timeFrames++;
+    if (state.timeFrames % GAME_CONSTANTS.ORC_ANIMATION_SPEED === 0) {
+      state.orcFrame = (state.orcFrame + 1) % orcFrames.length;
+    }
+    if (state.timeFrames % GAME_CONSTANTS.GOBLIN_ANIMATION_SPEED === 0) {
+      state.goblinFrame = (state.goblinFrame + 1) % goblinFrames.length;
+    }
+    if (state.comboTimer > 0) state.comboTimer--;
   }
-  if (state.timeFrames % GAME_CONSTANTS.GOBLIN_ANIMATION_SPEED === 0) {
-    state.goblinFrame = (state.goblinFrame + 1) % goblinFrames.length;
-  }
-  if (state.comboTimer > 0) state.comboTimer--;
   if (!state.paused && ++state.autoFireTimer % state.autoFireDelay === 0)
     shootBasic();
   if (!state.paused) {
@@ -780,6 +816,7 @@ function updateGame() {
       }
     } else {
       if (e.type === "troll") spawnTrunk(e.x);
+      registerKill(e.type);
       state.xp += GAME_CONSTANTS.XP_PER_ENEMY;
     }
   });
@@ -842,6 +879,7 @@ function updateGame() {
         if (e.hp <= 0) {
           state.enemies.splice(i, 1);
           if (e.type === "troll") spawnTrunk(e.x);
+          registerKill(e.type);
           state.xp += GAME_CONSTANTS.XP_PER_ENEMY;
         }
         return false;
@@ -1005,6 +1043,17 @@ if (typeof module === "undefined") {
       if (!state.pendingUpgrade) setPaused(false);
     });
   }
+
+  const achBtn = document.getElementById("achievementsBtn");
+  const achClose = document.getElementById("achievementsCloseBtn");
+  if (achBtn)
+    achBtn.addEventListener("click", () => {
+      showAchievements();
+    });
+  if (achClose)
+    achClose.addEventListener("click", () => {
+      document.getElementById("achievementsOverlay").style.display = "none";
+    });
 
   const levelBtn = document.getElementById("levelUpBtn");
   if (levelBtn) {
