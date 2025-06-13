@@ -4,7 +4,7 @@ const GAME_CONSTANTS = {
   SPAWN_INCREASE_TIMER: 30 * 60, // equivalente em quadros a 30 segundos
   // coeficiente aplicado ao spawnInterval. Abaixo de 1 reduz o intervalo
   // tornando os inimigos mais frequentes.
-  SPAWN_INCREASE_COEFF: 0.8, // crescimento de dificuldade suavizado
+  SPAWN_INCREASE_COEFF: 0.85, // crescimento de dificuldade suavizado
   PLAYER_SPEED: 3, // velocidade de movimento do jogador
   PLAYER_MAX_HP: 10, // vida base do jogador (ainda não usado)
   BULLET_SPEED: 5, // velocidade dos projéteis básicos do jogador
