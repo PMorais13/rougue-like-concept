@@ -14,6 +14,7 @@ const hudEls = {
   qCd: document.getElementById("qCd"),
   wCd: document.getElementById("wCd"),
   eCd: document.getElementById("eCd"),
+  eBombCd: document.getElementById("eBombCd"),
   timer: document.getElementById("timer"),
   comboName: document.getElementById("comboName"),
   lives: document.getElementById("lives"),
@@ -35,6 +36,7 @@ const hudCache = {
   qCd: null,
   wCd: null,
   eCd: null,
+  eBombCd: null,
   timer: null,
   comboName: null,
   lives: null,
@@ -159,6 +161,8 @@ const state = {
   qDamageBonus: 0,
   wBonusHp: 0,
   eDamageBonus: 0,
+  eBombDamageBonus: 0,
+  eBombAoeBonus: 0,
   qCooldown: 300,
   turretFireDelay: GAME_CONSTANTS.TURRET_FIRE_COOLDOWN,
   turretSpecialCd: 0,
@@ -309,11 +313,11 @@ function castE() {
         y: t.y,
         dx: Math.cos(ang) * spd,
         dy: Math.sin(ang) * spd,
-        dmg: t.dmg,
+        dmg: t.dmg + state.eBombDamageBonus,
         elements: [],
         color: "red",
         image: null,
-        aoe: 80,
+        aoe: 80 + state.eBombAoeBonus,
       });
       state.turretSpecialCd = GAME_CONSTANTS.TURRET_SPECIAL_COOLDOWN;
     }
@@ -369,6 +373,8 @@ const generalUpgradesPool = [
   UPGRADE_TURRET_FASTER,
   UPGRADE_BARRIER_HEIGHT,
   UPGRADE_BULLET_AOE,
+  UPGRADE_E_BOMB_DAMAGE,
+  UPGRADE_E_BOMB_AOE,
 ];
 
 if (typeof module !== "undefined") {
@@ -472,6 +478,8 @@ function resetState() {
     qDamageBonus: 0,
     wBonusHp: 0,
     eDamageBonus: 0,
+    eBombDamageBonus: 0,
+    eBombAoeBonus: 0,
     qCooldown: 300,
     turretFireDelay: GAME_CONSTANTS.TURRET_FIRE_COOLDOWN,
     turretSpecialCd: 0,
@@ -590,6 +598,12 @@ function updateHUD() {
   if (hudEls.eCd && hudCache.eCd !== eCdText) {
     hudEls.eCd.textContent = eCdText;
     hudCache.eCd = eCdText;
+  }
+  const bombCdText =
+    state.turretSpecialCd > 0 ? Math.ceil(state.turretSpecialCd / 60) : "";
+  if (hudEls.eBombCd && hudCache.eBombCd !== bombCdText) {
+    hudEls.eBombCd.textContent = bombCdText;
+    hudCache.eBombCd = bombCdText;
   }
 
   ["Q", "W", "E"].forEach((k) => {
