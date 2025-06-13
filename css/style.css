@@ -111,6 +111,11 @@
   text-align: left;
 }
 
+#scoreboardList {
+  margin: 10px 0;
+  text-align: left;
+}
+
     /* mobile controls */
     #mobileControls {
       display: none;

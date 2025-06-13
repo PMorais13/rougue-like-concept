@@ -34,15 +34,23 @@
     <p>Controles: Q, W, E para magias. Pressione P para pausar/continuar.</p>
     <button id="resumeBtn">Iniciar</button>
     <button id="achievementsBtn">Conquistas</button>
+    <button id="scoreboardBtn">Recordes</button>
   </div>
   <div id="achievementsOverlay" class="menu">
     <h2>Conquistas</h2>
     <div id="achievementsList"></div>
+    <p><strong>Melhor Tempo:</strong> <span id="bestTimeAchievement">0:00</span></p>
     <button id="achievementsCloseBtn">Fechar</button>
+  </div>
+  <div id="scoreboardOverlay" class="menu">
+    <h2>Recordes</h2>
+    <ol id="scoreboardList"></ol>
+    <button id="scoreboardCloseBtn">Fechar</button>
   </div>
   <div id="gameOverOverlay" class="menu">
     <h1>Game Over</h1>
     <p>Seu tempo: <span id="finalTime"></span></p>
+    <p>Recorde: <span id="bestTime">0:00</span></p>
     <button id="restartBtn">Novo Jogo</button>
   </div>
   <div id="generalUpgradePrompt"></div>
