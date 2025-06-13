@@ -549,7 +549,7 @@ function updateGame() {
     shootBasic();
   if (!state.paused) {
     if (state.spawnTimer-- <= 0) {
-      spawnEnemy();
+      spawnEnemy(state, canvas, GAME_CONSTANTS);
       state.spawnTimer = state.spawnInterval;
     }
     if (--state.spawnIncreaseTimer <= 0) {
@@ -623,7 +623,8 @@ function updateGame() {
         remainingEnemies.push(e);
       }
     } else {
-      if (e.type === "troll") spawnTrunk(e.x);
+      if (e.type === "troll")
+        spawnTrunk(state, canvas, GAME_CONSTANTS, troncoImg, e.x);
       registerKill(e.type);
       state.xp += GAME_CONSTANTS.XP_PER_ENEMY;
     }
@@ -686,7 +687,8 @@ function updateGame() {
         }
         if (e.hp <= 0) {
           state.enemies.splice(i, 1);
-          if (e.type === "troll") spawnTrunk(e.x);
+          if (e.type === "troll")
+            spawnTrunk(state, canvas, GAME_CONSTANTS, troncoImg, e.x);
           registerKill(e.type);
           state.xp += GAME_CONSTANTS.XP_PER_ENEMY;
         }
@@ -875,7 +877,9 @@ if (typeof module === "undefined") {
 
   const btn = document.getElementById("spawnTrollBtn");
   if (btn) {
-    btn.addEventListener("click", () => spawnEnemy("troll"));
+    btn.addEventListener("click", () =>
+      spawnEnemy(state, canvas, GAME_CONSTANTS, "troll")
+    );
   }
 
   const restart = document.getElementById("restartBtn");
