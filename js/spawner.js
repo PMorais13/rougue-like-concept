@@ -6,7 +6,7 @@ function spawnEnemy(state, canvas, GAME_CONSTANTS, forcedType) {
       ["miniom", weights.miniom, 0],
       ["tanker", weights.tanker, 3600],
       ["voador", weights.voador, 7200],
-      ["troll", weights.troll, 14400],
+      ["troll", weights.troll, 18000],
       ["spider", weights.spider, 14400],
     ].filter(([t, _w, frame]) => state.timeFrames >= frame);
     const totalWeight = entries.reduce((sum, [, w]) => sum + w, 0);

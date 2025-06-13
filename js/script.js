@@ -17,6 +17,7 @@ const hudEls = {
   timer: document.getElementById("timer"),
   comboName: document.getElementById("comboName"),
   lives: document.getElementById("lives"),
+  barrierHp: document.getElementById("barrierHp"),
   abilities: {
     Q: document.getElementById("qAbility"),
     W: document.getElementById("wAbility"),
@@ -37,6 +38,7 @@ const hudCache = {
   timer: null,
   comboName: null,
   lives: null,
+  barrierHp: null,
   skillsUnlocked: { Q: null, W: null, E: null },
 };
 const isMobile =
@@ -592,6 +594,11 @@ function updateHUD() {
   if (hudEls.lives && hudCache.lives !== state.lives) {
     hudEls.lives.textContent = state.lives;
     hudCache.lives = state.lives;
+  }
+  const bHp = state.barriers.length > 0 ? Math.ceil(state.barriers[0].hp) : 0;
+  if (hudEls.barrierHp && hudCache.barrierHp !== bHp) {
+    hudEls.barrierHp.textContent = bHp;
+    hudCache.barrierHp = bHp;
   }
 }
 

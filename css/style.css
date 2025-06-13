@@ -65,10 +65,11 @@
       pointer-events: none;
     }
     .ability {
-      background: rgba(0,0,0,0.6);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
+      background: rgba(0,0,0,0.8);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 16px;
+      border: 2px solid #fff;
     }
     .ability.locked {
       opacity: 0.3;
@@ -76,10 +77,12 @@
     .ability .key {
       font-weight: bold;
       margin-right: 4px;
+      font-size: 18px;
     }
     .ability .cd {
       margin-left: 4px;
       color: #ffb;
+      font-size: 14px;
     }
 
     .overlay {
