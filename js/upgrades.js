@@ -9,12 +9,14 @@ function levelUp() {
     return;
   }
 
+  const available = generalUpgradesPool.filter((u) => {
+    if (u.prop === "eBombDamageBonus") return state.eBombDamageBonus < 5;
+    if (u.prop === "eBombAoeBonus") return state.eBombAoeBonus < 5;
+    return true;
+  });
   const opts = [];
-  while (opts.length < 3) {
-    const rand =
-      generalUpgradesPool[
-        Math.floor(Math.random() * generalUpgradesPool.length)
-      ];
+  while (opts.length < Math.min(3, available.length)) {
+    const rand = available[Math.floor(Math.random() * available.length)];
     if (!opts.includes(rand)) opts.push(rand);
   }
   state.upgradeOptions = opts;
@@ -92,6 +94,10 @@ function applyStatUpgrade(up) {
     state.barrierHeight += up.value;
   } else if (up.prop === "bulletAOE") {
     state.bulletAOE += up.value;
+  } else if (up.prop === "eBombDamageBonus") {
+    state.eBombDamageBonus += up.value;
+  } else if (up.prop === "eBombAoeBonus") {
+    state.eBombAoeBonus += up.value;
   }
   state.generalUpgrades.push(up.desc);
 }

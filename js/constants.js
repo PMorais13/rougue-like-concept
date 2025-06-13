@@ -101,6 +101,20 @@ const UPGRADE_BULLET_AOE = {
   desc: "Ataque básico em área",
 };
 
+const UPGRADE_E_BOMB_DAMAGE = {
+  type: "stat",
+  prop: "eBombDamageBonus",
+  value: 1,
+  desc: "+ dano bomba E",
+};
+
+const UPGRADE_E_BOMB_AOE = {
+  type: "stat",
+  prop: "eBombAoeBonus",
+  value: 20,
+  desc: "+ área bomba E",
+};
+
 if (typeof module !== "undefined") {
   module.exports = {
     GAME_CONSTANTS,
@@ -112,6 +126,8 @@ if (typeof module !== "undefined") {
     UPGRADE_TURRET_FASTER,
     UPGRADE_BARRIER_HEIGHT,
     UPGRADE_BULLET_AOE,
+    UPGRADE_E_BOMB_DAMAGE,
+    UPGRADE_E_BOMB_AOE,
     // expose novo cooldown especial da torreta
     TURRET_SPECIAL_COOLDOWN: GAME_CONSTANTS.TURRET_SPECIAL_COOLDOWN,
   };

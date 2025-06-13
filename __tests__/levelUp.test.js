@@ -18,6 +18,8 @@ beforeEach(() => {
   global.UPGRADE_TURRET_FASTER = constants.UPGRADE_TURRET_FASTER;
   global.UPGRADE_BARRIER_HEIGHT = constants.UPGRADE_BARRIER_HEIGHT;
   global.UPGRADE_BULLET_AOE = constants.UPGRADE_BULLET_AOE;
+  global.UPGRADE_E_BOMB_DAMAGE = constants.UPGRADE_E_BOMB_DAMAGE;
+  global.UPGRADE_E_BOMB_AOE = constants.UPGRADE_E_BOMB_AOE;
   const canvas = document.getElementById('gameCanvas');
   canvas.getContext = () => ({ clearRect() {}, fillRect() {}, beginPath() {}, arc() {}, fill() {}, drawImage() {}, stroke() {}, lineTo() {}, moveTo() {} });
 });
