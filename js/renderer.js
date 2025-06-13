@@ -69,6 +69,17 @@ function drawGame() {
     }
   });
 
+  state.explosions = state.explosions.filter((ex) => {
+    ctx.fillStyle = ex.color;
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath();
+    ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ex.frames--;
+    return ex.frames > 0;
+  });
+
   state.barriers.forEach((b) => {
     if (b.image && b.image.complete) {
       ctx.drawImage(b.image, b.x, b.y, b.width, b.height);
