@@ -42,6 +42,7 @@ const hudCache = {
 const isMobile =
   typeof navigator !== "undefined" &&
   ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+const FRAME_TIME = 1000 / 60;
 let lastFrameTime =
   typeof performance !== "undefined" && performance.now
     ? performance.now()
@@ -582,25 +583,33 @@ function applyElementEffects(enemy, elements) {
   }
 }
 
-function updateGame() {
+function updateGame(dt) {
+  const frameFactor = dt / FRAME_TIME;
   if (!state.paused) {
-    state.timeFrames++;
+    state.timeFrames += frameFactor;
     if (state.timeFrames % GAME_CONSTANTS.ORC_ANIMATION_SPEED === 0) {
       state.orcFrame = (state.orcFrame + 1) % orcFrames.length;
     }
     if (state.timeFrames % GAME_CONSTANTS.GOBLIN_ANIMATION_SPEED === 0) {
       state.goblinFrame = (state.goblinFrame + 1) % goblinFrames.length;
     }
-    if (state.comboTimer > 0) state.comboTimer--;
+    if (state.comboTimer > 0) state.comboTimer -= frameFactor;
   }
-  if (!state.paused && ++state.autoFireTimer % state.autoFireDelay === 0)
-    shootBasic();
   if (!state.paused) {
-    if (state.spawnTimer-- <= 0) {
+    state.autoFireTimer += frameFactor;
+    if (state.autoFireTimer >= state.autoFireDelay) {
+      shootBasic();
+      state.autoFireTimer = 0;
+    }
+  }
+  if (!state.paused) {
+    state.spawnTimer -= frameFactor;
+    if (state.spawnTimer <= 0) {
       spawnEnemy(state, canvas, GAME_CONSTANTS);
       state.spawnTimer = state.spawnInterval;
     }
-    if (--state.spawnIncreaseTimer <= 0) {
+    state.spawnIncreaseTimer -= frameFactor;
+    if (state.spawnIncreaseTimer <= 0) {
       state.spawnInterval = Math.floor(
         state.spawnInterval * GAME_CONSTANTS.SPAWN_INCREASE_COEFF
       );
@@ -612,43 +621,43 @@ function updateGame() {
   const remainingEnemies = [];
   state.enemies.forEach((e) => {
     if (e.burn > 0) {
-      e.burn--;
-      e.hp -= (e.burnPct * e.maxHp) / 60;
+      e.burn -= frameFactor;
+      e.hp -= ((e.burnPct * e.maxHp) / 60) * frameFactor;
     }
     if (e.slow > 0) {
-      e.slow--;
+      e.slow -= frameFactor;
       if (e.slow === 0) e.slowFactor = 1;
     }
 
     if (e.knockback && e.knockback > 0) {
-      e.x += e.knockback;
-      e.knockback *= 0.6;
+      e.x += e.knockback * frameFactor;
+      e.knockback *= Math.pow(0.6, frameFactor);
       if (e.knockback < 1) e.knockback = 0;
     }
 
     if (e.type === "miniom") {
       if (e.jumpCooldown > 0) {
-        e.jumpCooldown--;
+        e.jumpCooldown -= frameFactor;
       } else if (e.vy === 0) {
         e.vy = GAME_CONSTANTS.MINIOM_JUMP_VELOCITY; // impulso do pulo
         e.jumpCooldown =
           Math.floor(Math.random() * GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_VAR) +
           GAME_CONSTANTS.MINIOM_JUMP_COOLDOWN_MIN;
       }
-      e.y += e.vy;
+      e.y += e.vy * frameFactor;
       if (e.y < e.baseY) {
-        e.vy += GAME_CONSTANTS.GRAVITY; // gravidade
+        e.vy += GAME_CONSTANTS.GRAVITY * frameFactor; // gravidade
       } else {
         e.y = e.baseY;
         e.vy = 0;
       }
     }
     if (e.type === "voador" && e.zigzag) {
-      e.angle += 0.1;
+      e.angle += 0.1 * frameFactor;
       e.y = e.baseY + Math.sin(e.angle) * e.amplitude;
     }
     if (e.type === "spider" && e.descending) {
-      e.y += e.speed;
+      e.y += e.speed * frameFactor;
       if (e.y >= e.groundY) {
         e.y = e.groundY;
         e.descending = false;
@@ -658,10 +667,11 @@ function updateGame() {
     let spd = e.slow > 0 ? e.speed * e.slowFactor : e.speed;
     if (e.type === "tanker") {
       if (e.dashTime > 0) {
-        e.dashTime--;
+        e.dashTime -= frameFactor;
         spd *= GAME_CONSTANTS.DASH_SPEED_MULTIPLIER;
       } else {
-        if (e.dashCooldown-- <= 0) {
+        e.dashCooldown -= frameFactor;
+        if (e.dashCooldown <= 0) {
           e.dashTime = e.dashDuration;
           e.dashCooldown =
             Math.floor(
@@ -671,7 +681,7 @@ function updateGame() {
       }
     }
     if (e.type === "spider" && e.descending) spd = 0;
-    e.x -= spd;
+    e.x -= spd * frameFactor;
     if (e.hp > 0) {
       if (e.x <= -e.size) {
         state.lives--;
@@ -693,7 +703,7 @@ function updateGame() {
   // lógica da torreta
   state.turrets.forEach((t) => {
     if (t.cooldown > 0) {
-      t.cooldown--;
+      t.cooldown -= frameFactor;
       return;
     }
     const target = state.crosshair || state.enemies[0];
@@ -717,8 +727,8 @@ function updateGame() {
 
   // movimenta projéteis e trata colisões
   state.bullets = state.bullets.filter((b) => {
-    b.x += b.dx;
-    b.y += b.dy;
+    b.x += b.dx * frameFactor;
+    b.y += b.dy * frameFactor;
     for (let i = 0; i < state.enemies.length; i++) {
       const e = state.enemies[i];
       const half = e.size / 2;
@@ -788,7 +798,8 @@ function updateGame() {
   });
 
   Object.keys(state.cooldowns).forEach(
-    (k) => (state.cooldowns[k] = Math.max(0, state.cooldowns[k] - 1))
+    (k) =>
+      (state.cooldowns[k] = Math.max(0, state.cooldowns[k] - frameFactor))
   );
 
   clampCrosshair();
@@ -804,7 +815,7 @@ function gameLoop() {
   const dt = now - lastFrameTime;
   lastFrameTime = now;
   if (!state.paused) state.elapsedMs += dt;
-  updateGame();
+  updateGame(dt);
   drawGame();
   updateHUD();
   requestAnimationFrame(gameLoop);
