@@ -929,9 +929,11 @@ if (typeof module !== "undefined") {
     if (loadingScreen) loadingScreen.style.display = "block";
     try {
       await loadAssets();
+    } catch (err) {
+      console.error("Erro ao carregar assets", err);
     } finally {
       if (loadingScreen) loadingScreen.style.display = "none";
+      initGame();
     }
-    initGame();
   })();
 }
