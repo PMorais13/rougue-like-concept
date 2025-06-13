@@ -919,6 +919,12 @@ function initGame() {
     if (state.crosshair) state.crosshair.dragging = false;
   });
 
+  canvas.addEventListener("click", () => {
+    if (state.crosshair && !state.crosshair.dragging) {
+      castE();
+    }
+  });
+
   if (isMobile) {
     const mobileControls = document.getElementById("mobileControls");
     if (mobileControls) mobileControls.style.display = "block";
@@ -953,7 +959,10 @@ function initGame() {
       });
       pad.addEventListener("touchmove", handleTouch);
       pad.addEventListener("touchend", () => {
-        if (state.crosshair) state.crosshair.dragging = false;
+        if (state.crosshair) {
+          if (!state.crosshair.dragging) castE();
+          state.crosshair.dragging = false;
+        }
       });
     }
 
