@@ -33,11 +33,12 @@ const GAME_CONSTANTS = {
     troll: { hp: 30, speed: 0.7, size: 240 },
     spider: { hp: 2, speed: 1.2, size: 50 },
   },
+  // spawn weights used once all enemy types are active
   ENEMY_SPAWN_WEIGHTS: {
-    miniom: 65,
+    miniom: 50,
     tanker: 20,
     voador: 10,
-    troll: 5,
+    troll: 10,
     spider: 10,
   },
 };
