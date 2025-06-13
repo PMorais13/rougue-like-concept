@@ -60,7 +60,6 @@ let magiaImg = new Image();
 let trollImg = new Image();
 let troncoImg = new Image();
 let crosshairImg = new Image();
-let shootSound = new Audio();
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -81,21 +80,15 @@ function loadAudio(src) {
 }
 
 async function loadAssets() {
-  [
-    mageImg,
-    batImg,
-    magiaImg,
-    trollImg,
-    troncoImg,
-    crosshairImg,
-  ] = await Promise.all([
-    loadImage("mage.png"),
-    loadImage("bat.png"),
-    loadImage("magia.png"),
-    loadImage("troll.png"),
-    loadImage("tronco.png"),
-    loadImage("reticule.png"),
-  ]);
+  [mageImg, batImg, magiaImg, trollImg, troncoImg, crosshairImg] =
+    await Promise.all([
+      loadImage("mage.png"),
+      loadImage("bat.png"),
+      loadImage("magia.png"),
+      loadImage("troll.png"),
+      loadImage("tronco.png"),
+      loadImage("reticule.png"),
+    ]);
   goblinFrames = await Promise.all([
     loadImage("goblin-1.png"),
     loadImage("goblin-2.png"),
@@ -106,7 +99,6 @@ async function loadAssets() {
     loadImage("orc-2.png"),
     loadImage("orc-3.png"),
   ]);
-  shootSound = await loadAudio("shoot.wav");
 }
 
 function loadKillCounts() {
@@ -211,7 +203,6 @@ if (typeof module !== "undefined") {
   var { drawGame } = require("./renderer.js");
 }
 
-
 function shootBasic() {
   const angle = Math.atan2(state.mouseY - player.y, state.mouseX - player.x);
   const speed = GAME_CONSTANTS.BULLET_SPEED;
@@ -224,8 +215,6 @@ function shootBasic() {
     elements: [],
     aoe: state.bulletAOE,
   });
-  shootSound.currentTime = 0;
-  shootSound.play().catch(() => {});
 }
 
 function castQ() {
@@ -308,7 +297,6 @@ function castE() {
   };
 }
 
-
 function clampCrosshair() {
   if (!state.crosshair || state.turrets.length === 0) return;
   const t = state.turrets[0];
@@ -371,7 +359,6 @@ function getComboName(elems) {
   const key = elems.slice(0, 3).sort().join(",");
   return comboMap[key] || null;
 }
-
 
 function formatTime(frames) {
   const sec = Math.floor(frames / 60);
@@ -490,17 +477,20 @@ function updateHUD() {
     hudCache.eUpgrades = eUp;
   }
 
-  const qCdText = state.cooldowns.Q > 0 ? Math.ceil(state.cooldowns.Q / 60) : "";
+  const qCdText =
+    state.cooldowns.Q > 0 ? Math.ceil(state.cooldowns.Q / 60) : "";
   if (hudEls.qCd && hudCache.qCd !== qCdText) {
     hudEls.qCd.textContent = qCdText;
     hudCache.qCd = qCdText;
   }
-  const wCdText = state.cooldowns.W > 0 ? Math.ceil(state.cooldowns.W / 60) : "";
+  const wCdText =
+    state.cooldowns.W > 0 ? Math.ceil(state.cooldowns.W / 60) : "";
   if (hudEls.wCd && hudCache.wCd !== wCdText) {
     hudEls.wCd.textContent = wCdText;
     hudCache.wCd = wCdText;
   }
-  const eCdText = state.cooldowns.E > 0 ? Math.ceil(state.cooldowns.E / 60) : "";
+  const eCdText =
+    state.cooldowns.E > 0 ? Math.ceil(state.cooldowns.E / 60) : "";
   if (hudEls.eCd && hudCache.eCd !== eCdText) {
     hudEls.eCd.textContent = eCdText;
     hudCache.eCd = eCdText;
@@ -533,7 +523,6 @@ function updateHUD() {
     hudCache.lives = state.lives;
   }
 }
-
 
 function applyElementEffects(enemy, elements) {
   if (!elements) return;
