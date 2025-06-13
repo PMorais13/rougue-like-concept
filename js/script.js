@@ -311,6 +311,7 @@ function castE() {
         dmg: t.dmg,
         elements: [],
         color: "red",
+        image: null,
         aoe: 80,
       });
       state.turretSpecialCd = GAME_CONSTANTS.TURRET_SPECIAL_COOLDOWN;

@@ -58,8 +58,9 @@ function drawGame() {
   });
 
   state.bullets.forEach((b) => {
-    if (magiaImg.complete) {
-      ctx.drawImage(magiaImg, b.x - 10, b.y - 10, 20, 20);
+    const img = b.image === undefined ? magiaImg : b.image;
+    if (img && img.complete) {
+      ctx.drawImage(img, b.x - 10, b.y - 10, 20, 20);
     } else {
       ctx.fillStyle = b.color || "white";
       ctx.beginPath();
