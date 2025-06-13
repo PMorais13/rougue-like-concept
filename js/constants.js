@@ -11,6 +11,7 @@ const GAME_CONSTANTS = {
   TURRET_BULLET_SPEED: 6, // velocidade dos projéteis das torretas
   PLAYER_FIRE_COOLDOWN: 80, // quadros entre disparos do jogador
   TURRET_FIRE_COOLDOWN: 100, // quadros entre disparos da torre
+  TURRET_SPECIAL_COOLDOWN: 600, // recarga do tiro especial da torreta
   MINIOM_JUMP_VELOCITY: -12, // velocidade inicial do pulo dos minioms
   MINIOM_JUMP_COOLDOWN_MIN: 60, // quadros mínimos antes do miniom pular
   MINIOM_JUMP_COOLDOWN_VAR: 120, // intervalo aleatório adicional de recarga
@@ -111,5 +112,7 @@ if (typeof module !== "undefined") {
     UPGRADE_TURRET_FASTER,
     UPGRADE_BARRIER_HEIGHT,
     UPGRADE_BULLET_AOE,
+    // expose novo cooldown especial da torreta
+    TURRET_SPECIAL_COOLDOWN: GAME_CONSTANTS.TURRET_SPECIAL_COOLDOWN,
   };
 }

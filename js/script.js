@@ -161,6 +161,7 @@ const state = {
   eDamageBonus: 0,
   qCooldown: 300,
   turretFireDelay: GAME_CONSTANTS.TURRET_FIRE_COOLDOWN,
+  turretSpecialCd: 0,
   barrierHeight: 40,
   bulletAOE: 0,
   crosshair: null,
@@ -292,13 +293,32 @@ function castW() {
 }
 
 function castE() {
-  if (
-    !state.skillsUnlocked.E ||
-    state.cooldowns.E > 0 ||
-    state.paused ||
-    state.turrets.length > 0
-  )
+  if (!state.skillsUnlocked.E || state.paused) return;
+
+  // se a torreta já estiver ativa, dispare o projétil especial se a recarga permitir
+  if (state.turrets.length > 0) {
+    if (state.turretSpecialCd > 0) return;
+    const t = state.turrets[0];
+    const target = state.crosshair || state.enemies[0];
+    if (target) {
+      const ang = Math.atan2(target.y - t.y, target.x - t.x);
+      const spd = GAME_CONSTANTS.TURRET_BULLET_SPEED;
+      state.bullets.push({
+        x: t.x,
+        y: t.y,
+        dx: Math.cos(ang) * spd,
+        dy: Math.sin(ang) * spd,
+        dmg: t.dmg,
+        elements: [],
+        color: "red",
+        aoe: 80,
+      });
+      state.turretSpecialCd = GAME_CONSTANTS.TURRET_SPECIAL_COOLDOWN;
+    }
     return;
+  }
+
+  if (state.cooldowns.E > 0) return;
   state.cooldowns.E = 300;
   const dmg = 1 + state.upgrades.E.length + state.eDamageBonus;
   state.turrets.push({
@@ -452,6 +472,7 @@ function resetState() {
     eDamageBonus: 0,
     qCooldown: 300,
     turretFireDelay: GAME_CONSTANTS.TURRET_FIRE_COOLDOWN,
+    turretSpecialCd: 0,
     barrierHeight: 40,
     bulletAOE: 0,
     crosshair: null,
@@ -647,6 +668,7 @@ function updateGame() {
       state.goblinFrame = (state.goblinFrame + 1) % goblinFrames.length;
     }
     if (state.comboTimer > 0) state.comboTimer--;
+    if (state.turretSpecialCd > 0) state.turretSpecialCd--;
   }
   if (!state.paused && ++state.autoFireTimer % state.autoFireDelay === 0)
     shootBasic();
