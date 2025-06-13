@@ -58,14 +58,26 @@ function drawGame() {
   });
 
   state.bullets.forEach((b) => {
-    if (magiaImg.complete) {
-      ctx.drawImage(magiaImg, b.x - 10, b.y - 10, 20, 20);
+    const img = b.image === undefined ? magiaImg : b.image;
+    if (img && img.complete) {
+      ctx.drawImage(img, b.x - 10, b.y - 10, 20, 20);
     } else {
       ctx.fillStyle = b.color || "white";
       ctx.beginPath();
       ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
       ctx.fill();
     }
+  });
+
+  state.explosions = state.explosions.filter((ex) => {
+    ctx.fillStyle = ex.color;
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath();
+    ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ex.frames--;
+    return ex.frames > 0;
   });
 
   state.barriers.forEach((b) => {

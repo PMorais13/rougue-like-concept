@@ -182,6 +182,7 @@ const state = {
   orcFrame: 0,
   goblinFrame: 0,
   beams: [],
+  explosions: [],
   comboName: "",
   comboTimer: 0,
   lives: 4,
@@ -311,6 +312,7 @@ function castE() {
         dmg: t.dmg,
         elements: [],
         color: "red",
+        image: null,
         aoe: 80,
       });
       state.turretSpecialCd = GAME_CONSTANTS.TURRET_SPECIAL_COOLDOWN;
@@ -817,6 +819,13 @@ function updateGame() {
               o.flash = 5;
             }
           });
+          state.explosions.push({
+            x: b.x,
+            y: b.y,
+            radius: b.aoe,
+            color: b.color || "red",
+            frames: 10,
+          });
         }
         if (e.hp <= 0) {
           state.enemies.splice(i, 1);
@@ -838,6 +847,15 @@ function updateGame() {
         b.y < barr.y + barr.height
       ) {
         barr.hp -= b.dmg;
+        if (b.aoe > 0) {
+          state.explosions.push({
+            x: b.x,
+            y: b.y,
+            radius: b.aoe,
+            color: b.color || "red",
+            frames: 10,
+          });
+        }
         return false;
       }
     }
