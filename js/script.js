@@ -946,4 +946,14 @@ if (typeof module !== "undefined") {
       initGame();
     }
   })();
+
+  if (typeof window !== "undefined") {
+    window.DEV = {
+      spawnMiniom: () => spawnEnemy(state, canvas, GAME_CONSTANTS, "miniom"),
+      spawnTanker: () => spawnEnemy(state, canvas, GAME_CONSTANTS, "tanker"),
+      spawnVoador: () => spawnEnemy(state, canvas, GAME_CONSTANTS, "voador"),
+      spawnTroll: () => spawnEnemy(state, canvas, GAME_CONSTANTS, "troll"),
+      spawnAranha: () => spawnEnemy(state, canvas, GAME_CONSTANTS, "spider"),
+    };
+  }
 }
