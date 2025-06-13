@@ -1,5 +1,5 @@
 const { JSDOM } = require('jsdom');
-const constants = require('../constants.js');
+const constants = require('../js/constants.js');
 
 beforeEach(() => {
   // create DOM
@@ -23,7 +23,7 @@ beforeEach(() => {
 });
 
 test('level up keeps enemies on screen', () => {
-  const { state, levelUp } = require('../script.js');
+  const { state, levelUp } = require('../js/script.js');
   state.enemies = [ { hp: 5 }, { hp: 3 } ];
   state.xp = state.xpToNext;
   levelUp();

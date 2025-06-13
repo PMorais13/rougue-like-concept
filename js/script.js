@@ -82,22 +82,22 @@ function loadAudio(src) {
 async function loadAssets() {
   [mageImg, batImg, magiaImg, trollImg, troncoImg, crosshairImg] =
     await Promise.all([
-      loadImage("mage.png"),
-      loadImage("bat.png"),
-      loadImage("magia.png"),
-      loadImage("troll.png"),
-      loadImage("tronco.png"),
-      loadImage("reticule.png"),
+      loadImage("../images/mage.png"),
+      loadImage("../images/bat.png"),
+      loadImage("../images/magia.png"),
+      loadImage("../images/troll.png"),
+      loadImage("../images/tronco.png"),
+      loadImage("../images/reticule.png"),
     ]);
   goblinFrames = await Promise.all([
-    loadImage("goblin-1.png"),
-    loadImage("goblin-2.png"),
-    loadImage("goblin-3.png"),
+    loadImage("../images/goblin-1.png"),
+    loadImage("../images/goblin-2.png"),
+    loadImage("../images/goblin-3.png"),
   ]);
   orcFrames = await Promise.all([
-    loadImage("orc-1.png"),
-    loadImage("orc-2.png"),
-    loadImage("orc-3.png"),
+    loadImage("../images/orc-1.png"),
+    loadImage("../images/orc-2.png"),
+    loadImage("../images/orc-3.png"),
   ]);
 }
 
