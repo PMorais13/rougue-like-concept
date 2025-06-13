@@ -42,6 +42,10 @@ const hudCache = {
 const isMobile =
   typeof navigator !== "undefined" &&
   ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+let lastFrameTime =
+  typeof performance !== "undefined" && performance.now
+    ? performance.now()
+    : Date.now();
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -171,6 +175,7 @@ const state = {
   spawnTimer: GAME_CONSTANTS.SPAWN_INTERVAL,
   spawnIncreaseTimer: GAME_CONSTANTS.SPAWN_INCREASE_TIMER,
   timeFrames: 0,
+  elapsedMs: 0,
   orcFrame: 0,
   goblinFrame: 0,
   beams: [],
@@ -372,8 +377,8 @@ function getComboName(elems) {
   return comboMap[key] || null;
 }
 
-function formatTime(frames) {
-  const sec = Math.floor(frames / 60);
+function formatTime(ms) {
+  const sec = Math.floor(ms / 1000);
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return m + ":" + (s < 10 ? "0" + s : s);
@@ -416,6 +421,7 @@ function resetState() {
     spawnTimer: GAME_CONSTANTS.SPAWN_INTERVAL,
     spawnIncreaseTimer: GAME_CONSTANTS.SPAWN_INCREASE_TIMER,
     timeFrames: 0,
+    elapsedMs: 0,
     orcFrame: 0,
     goblinFrame: 0,
     beams: [],
@@ -431,7 +437,7 @@ function showGameOver() {
   if (menuOverlay) menuOverlay.style.display = "none";
   const over = document.getElementById("gameOverOverlay");
   const final = document.getElementById("finalTime");
-  if (final) final.textContent = formatTime(state.timeFrames);
+  if (final) final.textContent = formatTime(state.elapsedMs);
   if (over) over.style.display = "block";
   state.gameOver = true;
 }
@@ -440,6 +446,10 @@ function newGame() {
   const over = document.getElementById("gameOverOverlay");
   if (over) over.style.display = "none";
   resetState();
+  lastFrameTime =
+    typeof performance !== "undefined" && performance.now
+      ? performance.now()
+      : Date.now();
   updateHUD();
   setPaused(false);
 }
@@ -519,7 +529,7 @@ function updateHUD() {
     }
   });
 
-  const timerText = formatTime(state.timeFrames);
+  const timerText = formatTime(state.elapsedMs);
   if (hudEls.timer && hudCache.timer !== timerText) {
     hudEls.timer.textContent = timerText;
     hudCache.timer = timerText;
@@ -787,6 +797,13 @@ function updateGame() {
 }
 
 function gameLoop() {
+  const now =
+    typeof performance !== "undefined" && performance.now
+      ? performance.now()
+      : Date.now();
+  const dt = now - lastFrameTime;
+  lastFrameTime = now;
+  if (!state.paused) state.elapsedMs += dt;
   updateGame();
   drawGame();
   updateHUD();
