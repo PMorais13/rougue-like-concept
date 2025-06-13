@@ -137,6 +137,7 @@ const state = {
   comboName: "",
   comboTimer: 0,
   lives: 4,
+  gameOver: false,
 };
 
 function setPaused(p) {
@@ -499,6 +500,71 @@ function formatTime(frames) {
   return m + ":" + (s < 10 ? "0" + s : s);
 }
 
+function resetState() {
+  Object.assign(state, {
+    level: 1,
+    xp: 0,
+    xpToNext: 10,
+    upgrades: { Q: [], W: [], E: [] },
+    generalUpgrades: [],
+    spellElements: { Q: [], W: [], E: [] },
+    enemies: [],
+    bullets: [],
+    turrets: [],
+    barriers: [],
+    cooldowns: { Q: 0, W: 0, E: 0 },
+    keys: {},
+    autoFireTimer: 0,
+    autoFireDelay: GAME_CONSTANTS.PLAYER_FIRE_COOLDOWN,
+    baseDamage: 1,
+    qDamageBonus: 0,
+    wBonusHp: 0,
+    eDamageBonus: 0,
+    qCooldown: 300,
+    turretFireDelay: GAME_CONSTANTS.TURRET_FIRE_COOLDOWN,
+    barrierHeight: 40,
+    bulletAOE: 0,
+    crosshair: null,
+    pendingUpgrade: null,
+    nextUpgrade: null,
+    upgradeOptions: [],
+    upgradeType: null,
+    paused: false,
+    mouseX: 0,
+    mouseY: 0,
+    skillsUnlocked: { Q: false, W: false, E: false },
+    spawnInterval: GAME_CONSTANTS.SPAWN_INTERVAL,
+    spawnTimer: GAME_CONSTANTS.SPAWN_INTERVAL,
+    spawnIncreaseTimer: GAME_CONSTANTS.SPAWN_INCREASE_TIMER,
+    timeFrames: 0,
+    orcFrame: 0,
+    goblinFrame: 0,
+    beams: [],
+    comboName: "",
+    comboTimer: 0,
+    lives: 4,
+    gameOver: false,
+  });
+}
+
+function showGameOver() {
+  setPaused(true);
+  if (menuOverlay) menuOverlay.style.display = "none";
+  const over = document.getElementById("gameOverOverlay");
+  const final = document.getElementById("finalTime");
+  if (final) final.textContent = formatTime(state.timeFrames);
+  if (over) over.style.display = "block";
+  state.gameOver = true;
+}
+
+function newGame() {
+  const over = document.getElementById("gameOverOverlay");
+  if (over) over.style.display = "none";
+  resetState();
+  updateHUD();
+  setPaused(false);
+}
+
 function showAchievements() {
   const cont = document.getElementById("achievementsList");
   if (!cont) return;
@@ -821,8 +887,8 @@ function updateGame() {
     }
   });
   state.enemies = remainingEnemies;
-  if (state.lives <= 0) {
-    state.paused = true;
+  if (state.lives <= 0 && !state.gameOver) {
+    showGameOver();
   }
 
   // lógica da torreta
@@ -1069,6 +1135,9 @@ if (typeof module === "undefined") {
   if (btn) {
     btn.addEventListener("click", () => spawnEnemy("troll"));
   }
+
+  const restart = document.getElementById("restartBtn");
+  if (restart) restart.addEventListener("click", newGame);
 }
 
 if (typeof module !== "undefined") {
