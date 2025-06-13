@@ -29,6 +29,7 @@ function drawGame() {
     if (e.type === "tanker") img = orcFrames[state.orcFrame];
     else if (e.type === "voador") img = batImg;
     else if (e.type === "troll") img = trollImg;
+    else if (e.type === "spider") img = e.descending ? spiderDownImg : spiderSoloImg;
     else img = goblinFrames[state.goblinFrame];
     if (img.complete) {
       ctx.drawImage(img, e.x, e.y, e.size, e.size);
@@ -36,6 +37,7 @@ function drawGame() {
       if (e.type === "tanker") ctx.fillStyle = "brown";
       else if (e.type === "voador") ctx.fillStyle = "yellow";
       else if (e.type === "troll") ctx.fillStyle = "darkgreen";
+      else if (e.type === "spider") ctx.fillStyle = "purple";
       else ctx.fillStyle = "green";
       ctx.fillRect(e.x, e.y, e.size, e.size);
     }

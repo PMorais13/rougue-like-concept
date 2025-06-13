@@ -31,12 +31,14 @@ const GAME_CONSTANTS = {
     tanker: { hp: 6, speed: 1, size: 90 },
     voador: { hp: 1, speed: 2.5, size: 50 },
     troll: { hp: 30, speed: 0.7, size: 240 },
+    spider: { hp: 2, speed: 1.2, size: 50 },
   },
   ENEMY_SPAWN_WEIGHTS: {
     miniom: 65,
     tanker: 20,
     voador: 10,
     troll: 5,
+    spider: 10,
   },
 };
 

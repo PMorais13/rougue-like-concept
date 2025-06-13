@@ -7,6 +7,7 @@ function spawnEnemy(state, canvas, GAME_CONSTANTS, forcedType) {
       ["tanker", weights.tanker, 3600],
       ["voador", weights.voador, 7200],
       ["troll", weights.troll, 14400],
+      ["spider", weights.spider, 14400],
     ].filter(([t, _w, frame]) => state.timeFrames >= frame);
     const totalWeight = entries.reduce((sum, [, w]) => sum + w, 0);
     let r = Math.random() * totalWeight;
@@ -28,10 +29,15 @@ function spawnEnemy(state, canvas, GAME_CONSTANTS, forcedType) {
   const stats = baseStats[type];
   const groundY = canvas.height - stats.size - 30;
   const enemy = {
-    x: canvas.width + 20 + Math.random() * 40,
+    x:
+      type === "spider"
+        ? Math.random() * (canvas.width - 200) + 160
+        : canvas.width + 20 + Math.random() * 40,
     y:
       type === "voador"
         ? canvas.height / 2 + (Math.random() * 120 - 60)
+        : type === "spider"
+        ? -stats.size
         : groundY,
     speed: stats.speed * speedMult,
     hp: Math.floor(stats.hp * hpMult),
@@ -45,6 +51,8 @@ function spawnEnemy(state, canvas, GAME_CONSTANTS, forcedType) {
     flash: 0,
     type,
     flying: type === "voador",
+    descending: type === "spider",
+    groundY,
   };
   if (type === "voador") {
     enemy.baseY = enemy.y;
@@ -65,6 +73,12 @@ function spawnEnemy(state, canvas, GAME_CONSTANTS, forcedType) {
       GAME_CONSTANTS.TANKER_DASH_COOLDOWN_MIN;
     enemy.dashDuration = GAME_CONSTANTS.TANKER_DASH_DURATION;
     enemy.dashTime = 0;
+  }
+  if (type === "spider") {
+    const extra = Math.floor(
+      Math.max(0, state.timeFrames - 5 * 60 * 60) / 3600
+    );
+    enemy.speed += extra * 0.2;
   }
   state.enemies.push(enemy);
 }

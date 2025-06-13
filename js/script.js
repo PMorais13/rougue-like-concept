@@ -60,6 +60,8 @@ let magiaImg = new Image();
 let trollImg = new Image();
 let troncoImg = new Image();
 let crosshairImg = new Image();
+let spiderDownImg = new Image();
+let spiderSoloImg = new Image();
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -80,15 +82,25 @@ function loadAudio(src) {
 }
 
 async function loadAssets() {
-  [mageImg, batImg, magiaImg, trollImg, troncoImg, crosshairImg] =
-    await Promise.all([
-      loadImage("../images/mage.png"),
-      loadImage("../images/bat.png"),
-      loadImage("../images/magia.png"),
-      loadImage("../images/troll.png"),
-      loadImage("../images/tronco.png"),
-      loadImage("../images/reticule.png"),
-    ]);
+  [
+    mageImg,
+    batImg,
+    magiaImg,
+    trollImg,
+    troncoImg,
+    crosshairImg,
+    spiderDownImg,
+    spiderSoloImg,
+  ] = await Promise.all([
+    loadImage("../images/mage.png"),
+    loadImage("../images/bat.png"),
+    loadImage("../images/magia.png"),
+    loadImage("../images/troll.png"),
+    loadImage("../images/tronco.png"),
+    loadImage("../images/reticule.png"),
+    loadImage("../images/spider-down.png"),
+    loadImage("../images/spider-solo.png"),
+  ]);
   goblinFrames = await Promise.all([
     loadImage("../images/goblin-1.png"),
     loadImage("../images/goblin-2.png"),
@@ -106,7 +118,7 @@ function loadKillCounts() {
     const data = localStorage.getItem("killCounts");
     if (data) return JSON.parse(data);
   } catch (e) {}
-  return { miniom: 0, tanker: 0, voador: 0, troll: 0 };
+  return { miniom: 0, tanker: 0, voador: 0, troll: 0, spider: 0 };
 }
 
 function saveKillCounts() {
@@ -440,6 +452,7 @@ function showAchievements() {
     <p>Tanker: ${state.killCounts.tanker}</p>
     <p>Voador: ${state.killCounts.voador}</p>
     <p>Troll: ${state.killCounts.troll}</p>
+    <p>Aranha: ${state.killCounts.spider}</p>
   `;
   document.getElementById("achievementsOverlay").style.display = "block";
 }
@@ -624,6 +637,13 @@ function updateGame() {
       e.angle += 0.1;
       e.y = e.baseY + Math.sin(e.angle) * e.amplitude;
     }
+    if (e.type === "spider" && e.descending) {
+      e.y += e.speed;
+      if (e.y >= e.groundY) {
+        e.y = e.groundY;
+        e.descending = false;
+      }
+    }
 
     let spd = e.slow > 0 ? e.speed * e.slowFactor : e.speed;
     if (e.type === "tanker") {
@@ -640,6 +660,7 @@ function updateGame() {
         }
       }
     }
+    if (e.type === "spider" && e.descending) spd = 0;
     e.x -= spd;
     if (e.hp > 0) {
       if (e.x <= -e.size) {
