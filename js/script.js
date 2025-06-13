@@ -384,6 +384,50 @@ function formatTime(ms) {
   return m + ":" + (s < 10 ? "0" + s : s);
 }
 
+function loadScores() {
+  if (typeof localStorage === "undefined") return [];
+  let str;
+  try {
+    str = localStorage.getItem("scores");
+  } catch (e) {
+    return [];
+  }
+  if (!str) return [];
+  try {
+    const arr = JSON.parse(str);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveScore(ms) {
+  if (typeof localStorage === "undefined") return [];
+  const scores = loadScores();
+  scores.push(ms);
+  scores.sort((a, b) => b - a);
+  const top = scores.slice(0, 5);
+  try {
+    localStorage.setItem("scores", JSON.stringify(top));
+  } catch (e) {}
+  return top;
+}
+
+function updateScoreboard() {
+  const list = document.getElementById("scoreboardList");
+  const bestEl = document.getElementById("bestTime");
+  const bestAch = document.getElementById("bestTimeAchievement");
+  if (!list) return;
+  if (typeof localStorage === "undefined") return;
+  const scores = loadScores();
+  list.innerHTML = scores
+    .map((s, i) => `<li>${i + 1} - ${formatTime(s)}</li>`)
+    .join("");
+  if (bestEl) bestEl.textContent = scores[0] ? formatTime(scores[0]) : "0:00";
+  if (bestAch)
+    bestAch.textContent = scores[0] ? formatTime(scores[0]) : "0:00";
+}
+
 function resetState() {
   Object.assign(state, {
     level: 1,
@@ -438,6 +482,8 @@ function showGameOver() {
   const over = document.getElementById("gameOverOverlay");
   const final = document.getElementById("finalTime");
   if (final) final.textContent = formatTime(state.elapsedMs);
+  saveScore(state.elapsedMs);
+  updateScoreboard();
   if (over) over.style.display = "block";
   state.gameOver = true;
 }
@@ -451,6 +497,7 @@ function newGame() {
       ? performance.now()
       : Date.now();
   updateHUD();
+  updateScoreboard();
   setPaused(false);
 }
 
@@ -464,6 +511,7 @@ function showAchievements() {
     <p>Troll: ${state.killCounts.troll}</p>
     <p>Aranha: ${state.killCounts.spider}</p>
   `;
+  updateScoreboard();
   document.getElementById("achievementsOverlay").style.display = "block";
 }
 
@@ -813,6 +861,7 @@ function gameLoop() {
 function initGame() {
   gameLoop();
   setPaused(true);
+  updateScoreboard();
 
   canvas.addEventListener("mousemove", (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -926,6 +975,18 @@ function initGame() {
   if (achClose)
     achClose.addEventListener("click", () => {
       document.getElementById("achievementsOverlay").style.display = "none";
+    });
+
+  const scoreBtn = document.getElementById("scoreboardBtn");
+  const scoreClose = document.getElementById("scoreboardCloseBtn");
+  if (scoreBtn)
+    scoreBtn.addEventListener("click", () => {
+      updateScoreboard();
+      document.getElementById("scoreboardOverlay").style.display = "block";
+    });
+  if (scoreClose)
+    scoreClose.addEventListener("click", () => {
+      document.getElementById("scoreboardOverlay").style.display = "none";
     });
 
   const levelBtn = document.getElementById("levelUpBtn");
